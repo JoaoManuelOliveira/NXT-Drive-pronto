@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>NXT Drive - Acesso Negado</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+		rel="stylesheet">
+
+	<link rel="stylesheet" th:href="@{/403.css}">
+</head>
+
+<body>
+
+	<div class="container">
+
+		<div class="logo">
+			<img th:src="@{/img/nxtDriveLogo.jpg}" alt="NXT Drive">
+		</div>
+
+		<div class="codigo">403</div>
+
+		<h1>Acesso Negado</h1>
+
+		<p class="mensagem">
+			Ops! Você não possui permissão para realizar esta operação.
+			<br>
+			Esta área é restrita a usuários com perfil
+			<span class="destaque">ADMIN</span>.
+		</p>
+
+		<a th:href="@{/home}" class="botao">
+			← Voltar para a Loja
+		</a>
+
+		<div class="linha"></div>
+
+		<div class="info">
+			NXT DRIVE • SECURITY SYSTEM
+		</div>
+
+	</div>
+
+</body>
+
+</html>

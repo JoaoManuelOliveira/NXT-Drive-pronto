@@ -1,0 +1,405 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'JetBrains Mono', monospace;
+	background: linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.92)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1920') center/cover;
+	color: white;
+	min-height: 100vh;
+}
+
+h1,
+h2,
+th {
+	font-weight: 700;
+}
+
+/* HEADER */
+.topbar {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	padding: 20px 40px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(10px);
+}
+
+.logo {
+	width: 120px;
+	height: 55px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.logo img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.topbar h1 {
+	font-size: 1.4rem;
+	font-weight: 600;
+}
+
+/* LAYOUT & SIDEBAR */
+.layout {
+	display: flex;
+	height: calc(100vh - 80px);
+}
+
+.sidebar {
+	width: 260px;
+	padding: 25px;
+	border-right: 1px solid rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(12px);
+
+	display: flex;
+	flex-direction: column;
+
+	height: 100%;
+}
+
+.sidebar h2 {
+	margin-bottom: 25px;
+	color: #3da9ff;
+	font-size: 1.1rem;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.sidebar ul {
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	/* Espaçamento consistente entre os botões */
+}
+
+/* Transformando o LI em um container interativo de verdade */
+.sidebar li {
+	border-radius: 10px;
+	cursor: pointer;
+	background: rgba(255, 255, 255, 0.02);
+	border: 1px solid rgba(255, 255, 255, 0.04);
+	transition: all 0.2s ease-in-out;
+	/* Transição suave para efeitos de hover */
+}
+
+/* Efeito Hover: Feedback instantâneo quando o usuário passa o mouse */
+.sidebar li:hover {
+	background: rgba(0, 153, 255, 0.1);
+	border-color: rgba(0, 153, 255, 0.3);
+	transform: translateX(4px);
+	/* Sutil movimento para a direita dando ideia de seleção */
+}
+
+/* Item Ativo: Destaque total para a página atual */
+.sidebar li.active {
+	background: rgba(0, 153, 255, 0.2);
+	border-color: #00b3ff;
+	box-shadow: 0 0 15px rgba(0, 179, 255, 0.2);
+}
+
+/* Garante que o texto fique bem posicionado e legível */
+.sidebar ul li a,
+.sidebar ul li span,
+.sidebar ul li {
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+/* Quando ativo ou em hover, o texto ganha brilho total (branco) */
+.sidebar li:hover a,
+.sidebar li.active a {
+	color: #ffffff;
+}
+
+/* REGRA DE UX CRÍTICA: Faz o link ocupar todo o espaço do botão */
+.sidebar ul li a {
+	padding: 14px 16px;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* Estilização para os itens que ainda não têm link (ex: Configurações) */
+.sidebar ul li:not(:has(a)) {
+	padding: 14px 16px;
+	opacity: 0.5;
+	/* Mostra que estão desabilitados por enquanto */
+	cursor: not-allowed;
+}
+
+.sidebar ul li:not(:has(a)):hover {
+	transform: none;
+	background: rgba(255, 255, 255, 0.02);
+	border-color: rgba(255, 255, 255, 0.04);
+}
+
+.add-btn {
+	margin-top: 25px;
+	width: 100%;
+	padding: 14px;
+	border: none;
+	border-radius: 10px;
+	background: #00b3ff;
+	color: white;
+	font-family: inherit;
+	font-weight: 700;
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.2s;
+	box-shadow: 0 4px 12px rgba(0, 179, 255, 0.3);
+}
+
+.add-btn:hover {
+	background: #0099ff;
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(0, 179, 255, 0.4);
+}
+
+.add-btn:active {
+	transform: translateY(0);
+}
+
+/* CONTENT & CARDS */
+.content {
+	flex: 1;
+	padding: 25px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	overflow-y: auto;
+}
+
+.card {
+	background: rgba(10, 10, 10, 0.75);
+	border: 1px solid rgba(0, 153, 255, 0.18);
+	border-radius: 18px;
+	padding: 20px;
+	backdrop-filter: blur(14px);
+}
+
+.titulo-centralizado {
+	text-align: center;
+	margin-bottom: 15px;
+}
+
+/* TABLE */
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 15px;
+}
+
+th,
+td {
+	padding: 18px 12px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+th {
+	color: #1ea7ff;
+	font-weight: 700;
+	font-size: 18px;
+}
+
+td {
+	font-size: 16px;
+	color: white;
+	border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* BOTOES DA TABELA */
+.acoes {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+}
+
+.edit,
+.delete {
+	border: none;
+	border-radius: 10px;
+	padding: 10px 22px;
+	font-size: 14px;
+	font-weight: 600;
+	color: white;
+	cursor: pointer;
+	min-width: 100px;
+	transition: 0.2s;
+}
+
+.edit {
+	background: #003b66;
+}
+
+.delete {
+	background: #730024;
+}
+
+.edit:hover,
+.delete:hover {
+	transform: scale(1.05);
+}
+
+/* MODAL FLUTUANTE */
+.form-card {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1000;
+	width: 90%;
+	max-width: 500px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 153, 255, 0.2);
+}
+
+.form-card.show {
+	display: block;
+}
+
+.modal-overlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(4px);
+	z-index: 999;
+}
+
+.modal-overlay.show {
+	display: block;
+}
+
+/* Ajustado para alinhar verticalmente todos os filhos do form de forma idêntica */
+#dinamicoForm {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 15px;
+}
+
+#dinamicoForm label {
+	font-size: 14px;
+	color: #3da9ff;
+	margin-top: 4px;
+	text-align: left;
+}
+
+/* Padroniza inputs normais, readonly e a tag select simultaneamente */
+input,
+select {
+	width: 100%;
+	padding: 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background: rgba(255, 255, 255, 0.04);
+	color: white;
+	outline: none;
+	font-family: inherit;
+	font-size: 14px;
+	transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+	border-color: #00b3ff;
+}
+
+/* Corrige renderização interna de opções no select em navegadores baseados em Chromium */
+select option {
+	background-color: #111;
+	color: white;
+}
+
+.actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 15px;
+}
+
+.save,
+.cancel {
+	flex: 1;
+	padding: 12px;
+	border: none;
+	border-radius: 10px;
+	color: white;
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.save {
+	background: #00b3ff;
+}
+
+.cancel {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar ul li a {
+	color: inherit;
+	text-decoration: none;
+	display: block;
+	width: 100%;
+}
+
+/* LOGOUT */
+.logout-form {
+	margin-top: auto;
+	padding-top: 25px;
+}
+
+.logout-btn {
+	width: 100%;
+	padding: 14px 16px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 51, 102, 0.2);
+	background: rgba(115, 0, 36, 0.12);
+	color: rgba(255, 255, 255, 0.7);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	text-align: left;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	transition: all 0.2s ease-in-out;
+}
+
+.logout-btn span {
+	font-size: 18px;
+	color: #ff3366;
+}
+
+.logout-btn:hover {
+	background: rgba(255, 51, 102, 0.15);
+	border-color: rgba(255, 51, 102, 0.5);
+	color: white;
+	transform: translateX(4px);
+	box-shadow: 0 0 15px rgba(255, 51, 102, 0.15);
+}
+
+.logout-btn:hover span {
+	color: #ff3366;
+}
+
+.logout-btn:active {
+	transform: translateX(2px);
+}

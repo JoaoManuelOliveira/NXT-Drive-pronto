@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>NXT Drive - Dashboard</title>
+	<link rel="stylesheet" th:href="@{/styleDashboard.css}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;500;700&family=Syncopate:wght@700&display=swap"
+		rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	<style>
+		/* ESTILOS EXCLUSIVOS DO DASHBOARD DE PEDIDOS */
+		.pedidos-container {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.metrics-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 16px;
+		}
+
+		.metric-card {
+			background: rgba(15, 20, 28, 0.7);
+			border: 1px solid rgba(0, 153, 255, 0.15);
+			border-radius: 14px;
+			padding: 18px 20px;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			backdrop-filter: blur(12px);
+			transition: transform 0.2s ease, border-color 0.2s ease;
+		}
+
+		.metric-card:hover {
+			transform: translateY(-2px);
+			border-color: rgba(0, 153, 255, 0.35);
+		}
+
+		.metric-title {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 1px;
+			color: #8899a6;
+		}
+
+		.metric-value {
+			font-size: 26px;
+			font-family: 'JetBrains Mono', monospace;
+			font-weight: 700;
+			color: #fff;
+		}
+
+		.metric-sub {
+			font-size: 11px;
+			color: #556677;
+		}
+
+		.pedidos-header-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 15px;
+			margin-bottom: 20px;
+			padding-bottom: 16px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		}
+
+		.pedidos-actions-bar {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.live-indicator {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 12px;
+			background: rgba(0, 230, 118, 0.08);
+			border: 1px solid rgba(0, 230, 118, 0.25);
+			border-radius: 20px;
+		}
+
+		.pulse-dot {
+			width: 8px;
+			height: 8px;
+			background: #00e676;
+			border-radius: 50%;
+			box-shadow: 0 0 10px #00e676;
+			animation: pulse 1.8s infinite;
+		}
+
+		@keyframes pulse {
+			0% { transform: scale(0.9); opacity: 0.7; }
+			50% { transform: scale(1.3); opacity: 1; }
+			100% { transform: scale(0.9); opacity: 0.7; }
+		}
+
+		@keyframes spin {
+			100% { transform: rotate(360deg); }
+		}
+
+		.btn-refresh {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: rgba(0, 153, 255, 0.15);
+			border: 1px solid rgba(0, 153, 255, 0.4);
+			color: #3da9ff;
+			padding: 8px 16px;
+			border-radius: 8px;
+			font-family: inherit;
+			font-size: 13px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-refresh:hover {
+			background: rgba(0, 153, 255, 0.25);
+			border-color: #3da9ff;
+			color: #fff;
+			transform: translateY(-1px);
+		}
+
+		.pedidos-filter-bar {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			margin-bottom: 18px;
+		}
+
+		.filter-btn {
+			padding: 6px 14px;
+			border-radius: 20px;
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			background: rgba(255, 255, 255, 0.03);
+			color: #aaa;
+			font-size: 12px;
+			font-family: inherit;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.filter-btn:hover, .filter-btn.active {
+			background: rgba(0, 153, 255, 0.2);
+			border-color: #3da9ff;
+			color: #fff;
+		}
+
+		.filtro-input {
+			background: #11141a;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			border-radius: 8px;
+			padding: 7px 12px;
+			color: #fff;
+			font-size: 13px;
+			outline: none;
+			transition: border-color 0.2s;
+		}
+		.filtro-input:focus {
+			border-color: #3da9ff;
+		}
+
+		.badge-status {
+			display: inline-block;
+			padding: 5px 12px;
+			border-radius: 20px;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 0.5px;
+			text-transform: uppercase;
+		}
+
+		.badge-status-pago, .badge-status-aprovado {
+			color: #00e676;
+			background: rgba(0, 230, 118, 0.12);
+			border: 1px solid rgba(0, 230, 118, 0.4);
+			box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
+		}
+
+		.badge-status-pendente {
+			color: #ffb300;
+			background: rgba(255, 179, 0, 0.12);
+			border: 1px solid rgba(255, 179, 0, 0.4);
+			box-shadow: 0 0 10px rgba(255, 179, 0, 0.15);
+		}
+
+		.badge-status-rejeitado, .badge-status-cancelado {
+			color: #ff3366;
+			background: rgba(255, 51, 102, 0.12);
+			border: 1px solid rgba(255, 51, 102, 0.4);
+			box-shadow: 0 0 10px rgba(255, 51, 102, 0.15);
+		}
+
+		.badge-metodo {
+			display: inline-block;
+			padding: 3px 8px;
+			border-radius: 4px;
+			font-size: 10px;
+			font-weight: 700;
+			background: rgba(255, 255, 255, 0.08);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			color: #ddd;
+		}
+
+		.btn-copy-id {
+			background: none;
+			border: none;
+			cursor: pointer;
+			color: #888;
+			font-size: 12px;
+			padding: 2px 4px;
+			border-radius: 4px;
+			transition: color 0.2s;
+		}
+
+		.btn-copy-id:hover {
+			color: #3da9ff;
+		}
+
+		.table-responsive {
+			overflow-x: auto;
+			width: 100%;
+		}
+
+		/* ESTILOS EXCLUSIVOS DO MÓDULO DE ESTATÍSTICAS */
+		.estatisticas-container {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.stats-header-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 12px;
+		}
+
+		.stats-period-tabs {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			align-items: center;
+		}
+
+		.stat-pill {
+			padding: 7px 16px;
+			border-radius: 20px;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			background: rgba(255, 255, 255, 0.04);
+			color: #aaa;
+			font-size: 12px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.stat-pill:hover, .stat-pill.active {
+			background: rgba(0, 153, 255, 0.2);
+			border-color: #3da9ff;
+			color: #fff;
+			box-shadow: 0 0 10px rgba(0, 153, 255, 0.25);
+		}
+
+		.highlight-card {
+			background: rgba(15, 20, 28, 0.7);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 12px;
+			padding: 16px;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.highlight-card::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: linear-gradient(90deg, #3da9ff, transparent);
+		}
+
+		.highlight-card.green::before {
+			background: linear-gradient(90deg, #00e676, transparent);
+		}
+
+		.highlight-card.amber::before {
+			background: linear-gradient(90deg, #ffb300, transparent);
+		}
+
+		.highlight-card.pink::before {
+			background: linear-gradient(90deg, #ff3366, transparent);
+		}
+
+		.progress-bar-bg {
+			width: 100%;
+			height: 6px;
+			background: rgba(255, 255, 255, 0.06);
+			border-radius: 3px;
+			overflow: hidden;
+			margin-top: 4px;
+		}
+
+		.progress-bar-fill {
+			height: 100%;
+			background: linear-gradient(90deg, #3da9ff, #00e676);
+			border-radius: 3px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<header class="topbar">
+		<div class="logo">
+			<a th:href="@{/home}">
+				<img th:src="@{/img/nxtDriveLogo.jpg}" alt="Logo NXT Drive">
+			</a>
+		</div>
+		<h1
+			th:text="${contexto == 'estatisticas' ? 'NXT DRIVE • Estatísticas & Analytics' : (contexto == 'pedidos' ? 'NXT DRIVE • Gestão de Pedidos' : (contexto == 'produtos' ? 'NXT DRIVE • Produtos' : (contexto == 'usuarios' ? 'NXT DRIVE • Usuários' : 'NXT DRIVE • Categorias')))}">
+			NXT DRIVE</h1>
+	</header>
+
+	<div class="layout">
+
+		<aside class="sidebar">
+
+			<h2>Menu</h2>
+
+			<ul>
+				<li>
+					<a th:href="@{/home}">Home</a>
+				</li>
+
+				<li th:classappend="${contexto == 'categorias' ? 'active' : ''}">
+					<a th:href="@{/categorias}">Categorias</a>
+				</li>
+
+				<li th:classappend="${contexto == 'produtos' ? 'active' : ''}">
+					<a th:href="@{/produtos}">Produtos</a>
+				</li>
+
+				<!-- MENU PEDIDOS (Visível apenas para ADMIN) -->
+				<li sec:authorize="hasRole('ADMIN')" th:classappend="${contexto == 'pedidos' ? 'active' : ''}">
+					<a th:href="@{/pedidos}">Pedidos</a>
+				</li>
+
+				<!-- MENU USUÁRIOS (Visível apenas para ADMIN) -->
+				<li sec:authorize="hasRole('ADMIN')" th:classappend="${contexto == 'usuarios' ? 'active' : ''}">
+					<a th:href="@{/usuarios}">Usuários</a>
+				</li>
+
+				<!-- MENU ESTATÍSTICAS (PENÚLTIMO, antes de Configurações!) -->
+				<li sec:authorize="hasRole('ADMIN')" th:classappend="${contexto == 'estatisticas' ? 'active' : ''}">
+					<a th:href="@{/dashboard}">Estatísticas</a>
+				</li>
+
+				<li style="opacity: 0.45; cursor: not-allowed;" title="Em breve">Configurações</li>
+			</ul>
+
+			<!-- BOTÕES DE ADICIONAR (Não exibidos na aba Usuários, Pedidos ou Estatísticas) -->
+			<button class="add-btn" th:if="${contexto == 'categorias'}" onclick="novaCategoria()">
+				+ Adicionar Categoria
+			</button>
+
+			<button class="add-btn" th:if="${contexto == 'produtos'}" onclick="novoProduto()">
+				+ Adicionar Produto
+			</button>
+
+			<!-- LOGOUT -->
+			<form class="logout-form" method="post" th:action="@{/logout}">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+				<button type="submit" class="logout-btn">
+					<span>⏻</span>
+					Sair
+				</button>
+			</form>
+
+		</aside>
+
+		<main class="content">
+
+			<div th:if="${erro}"
+				style="color: #ff3366; background: rgba(115,0,36,0.2); padding: 15px; border-radius: 10px; border: 1px solid #730024; font-weight: bold; text-align: center; margin-bottom: 15px;">
+				<p th:text="${erro}"></p>
+			</div>
+
+			<div th:if="${sucesso}"
+				style="color: #00ff88; background: rgba(0,115,36,0.2); padding: 15px; border-radius: 10px; border: 1px solid #007324; font-weight: bold; text-align: center; margin-bottom: 15px;">
+				<p th:text="${sucesso}"></p>
+			</div>
+
+			<!-- SEÇÃO DE GESTÃO DE PEDIDOS -->
+			<div th:if="${contexto == 'pedidos'}" class="pedidos-container">
+				<!-- METRICAS DE VENDAS -->
+				<div class="metrics-grid">
+					<div class="metric-card">
+						<span class="metric-title">TOTAL DE PEDIDOS</span>
+						<strong class="metric-value" id="metricaTotalPedidos" th:text="${pedidos != null ? pedidos.size() : 0}">0</strong>
+						<span class="metric-sub">Histórico completo</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-title">PEDIDOS PAGOS</span>
+						<strong class="metric-value" id="metricaPagos" style="color: #00e676;">0</strong>
+						<span class="metric-sub">Pagamentos confirmados</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-title">FATURAMENTO TOTAL</span>
+						<strong class="metric-value" id="metricaFaturamento" style="color: #3da9ff;">R$ 0,00</strong>
+						<span class="metric-sub">Total pago</span>
+					</div>
+					<div class="metric-card">
+						<span class="metric-title">AGUARDANDO PAGAMENTO</span>
+						<strong class="metric-value" id="metricaPendentes" style="color: #ffb300;">0</strong>
+						<span class="metric-sub">Pix / Aberto</span>
+					</div>
+				</div>
+
+				<div class="card">
+					<div class="pedidos-header-bar">
+						<div>
+							<h2 style="font-size: 20px; font-weight: 700; color: #fff;">Gestão de Pedidos em Tempo Real</h2>
+							<p style="font-size: 13px; color: #888; margin-top: 4px;">Monitoramento ao vivo de pagamentos Pix e Cartão via Mercado Pago</p>
+						</div>
+
+						<div class="pedidos-actions-bar">
+							<div class="live-indicator">
+								<span class="pulse-dot"></span>
+								<span style="font-size: 12px; color: #aaa;">Ao vivo</span>
+							</div>
+
+							<button type="button" class="btn-refresh" id="btnRefreshPedidos" onclick="carregarPedidosAdmin(true)">
+								<span id="refreshIcon">🔄</span> Atualizar Lista
+							</button>
+						</div>
+					</div>
+
+					<div class="pedidos-filter-bar" style="flex-direction: column; gap: 12px;">
+						<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; width: 100%;">
+							<button type="button" class="filter-btn active" onclick="selecionarFiltroStatus('TODOS', this)">Todos (<span id="countTodos">0</span>)</button>
+							<button type="button" class="filter-btn" onclick="selecionarFiltroStatus('PAGO', this)">Pagos (<span id="countPago">0</span>)</button>
+							<button type="button" class="filter-btn" onclick="selecionarFiltroStatus('PENDENTE', this)">Pendentes (<span id="countPendente">0</span>)</button>
+							<button type="button" class="filter-btn" onclick="selecionarFiltroStatus('CANCELADO', this)">Cancelados (<span id="countCancelado">0</span>)</button>
+							<button type="button" class="filter-btn" onclick="selecionarFiltroStatus('REJEITADO', this)">Rejeitados (<span id="countRejeitado">0</span>)</button>
+						</div>
+
+						<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+							<div style="flex: 1; min-width: 220px;">
+								<input type="text" id="filtroCliente" class="filtro-input" style="width: 100%; box-sizing: border-box;" placeholder="🔍 Buscar cliente ou e-mail..." oninput="filtrarDebounce()">
+							</div>
+							<div style="display: flex; align-items: center; gap: 6px;">
+								<span style="font-size: 12px; color: #888;">De:</span>
+								<input type="date" id="filtroDataInicio" class="filtro-input" onchange="aplicarFiltrosAdmin()">
+							</div>
+							<div style="display: flex; align-items: center; gap: 6px;">
+								<span style="font-size: 12px; color: #888;">Até:</span>
+								<input type="date" id="filtroDataFim" class="filtro-input" onchange="aplicarFiltrosAdmin()">
+							</div>
+							<button type="button" class="btn-refresh" style="padding: 7px 14px;" onclick="aplicarFiltrosAdmin()">Filtrar</button>
+							<button type="button" class="filter-btn" style="padding: 7px 12px;" onclick="limparFiltrosAdmin()">Limpar</button>
+						</div>
+					</div>
+
+					<div class="table-responsive">
+						<table id="tabelaPedidosAdmin">
+							<thead>
+								<tr>
+									<th>ID & Data/Hora</th>
+									<th>Cliente</th>
+									<th>Itens Solicitados</th>
+									<th>Endereço de Entrega</th>
+									<th>Status</th>
+									<th>Total & Pagamento</th>
+								</tr>
+							</thead>
+							<tbody id="pedidosTbody">
+								<!-- Renderizado inicialmente pelo Thymeleaf -->
+								<tr th:if="${pedidos == null || #lists.isEmpty(pedidos)}" id="linhaVaziaPedidos">
+									<td colspan="6" style="text-align: center; color: #888; padding: 40px;">
+										Nenhum pedido registrado no sistema até o momento.
+									</td>
+								</tr>
+
+								<tr th:each="p : ${pedidos}" th:attr="data-status=${p.status}">
+									<td style="text-align: left;">
+										<div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #3da9ff; display: flex; align-items: center; gap: 6px;">
+											<span th:text="${#strings.substring(p.id.toString(), 0, 8) + '...'}"></span>
+											<button type="button" class="btn-copy-id" th:attr="data-uuid=${p.id}" onclick="copiarUuid(this)" title="Copiar UUID Completo">📋</button>
+										</div>
+										<div style="font-size: 12px; color: #888; margin-top: 4px;" th:text="${#temporals.format(p.dataCriacao, 'dd/MM/yyyy HH:mm:ss')}"></div>
+										<div th:if="${p.paymentId != null}" style="font-size: 11px; color: #666; margin-top: 2px;">MP ID: <span th:text="${p.paymentId}"></span></div>
+									</td>
+									<td style="text-align: left;">
+										<div style="font-weight: 700; color: #fff;" th:text="${p.nomeCliente}"></div>
+										<div style="font-size: 12px; color: #aaa;" th:text="${p.emailPagador}"></div>
+										<div th:if="${p.cpfCliente != null && !p.cpfCliente.isEmpty()}" style="font-size: 11px; color: #777;">CPF: <span th:text="${p.cpfCliente}"></span></div>
+										<div th:if="${p.telefoneCliente != null && !p.telefoneCliente.isEmpty()}" style="font-size: 11px; color: #777;">Tel: <span th:text="${p.telefoneCliente}"></span></div>
+									</td>
+									<td style="text-align: left; max-width: 250px;">
+										<div style="font-size: 13px; color: #e0e0e0; line-height: 1.4;" th:text="${p.itensDescricao}"></div>
+									</td>
+									<td style="text-align: left; max-width: 280px;">
+										<div style="font-size: 12px; color: #ccc; line-height: 1.4;">
+											📍 <span th:text="${p.enderecoCompleto}"></span>
+										</div>
+									</td>
+									<td>
+										<span th:class="'badge-status badge-status-' + ${#strings.toLowerCase(p.status)}" th:text="${p.status}"></span>
+									</td>
+									<td style="text-align: right;">
+										<div style="font-size: 16px; font-weight: 700; color: #00e676; font-family: 'JetBrains Mono', monospace;" th:text="'R$ ' + ${#numbers.formatDecimal(p.valorTotal, 1, 'POINT', 2, 'COMMA')}"></div>
+										<div style="margin-top: 4px;">
+											<span class="badge-metodo" th:text="${#strings.equalsIgnoreCase(p.metodoPagamento, 'pix') ? '⚡ PIX' : '💳 CARTÃO'}"></span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<!-- SEÇÃO DE ESTATÍSTICAS E ANALYTICS -->
+			<div th:if="${contexto == 'estatisticas'}" class="estatisticas-container">
+				<!-- BARRA SUPERIOR DE CONTROLE E FILTRO DE PERÍODO -->
+				<div class="card" style="padding: 16px 20px;">
+					<div class="stats-header-bar">
+						<div>
+							<h2 style="font-size: 20px; font-weight: 700; color: #fff;">Analytics & Performance de Vendas</h2>
+							<p style="font-size: 13px; color: #888; margin-top: 4px;">Estatísticas consolidadas de pedidos efetivamente PAGOS via Mercado Pago</p>
+						</div>
+
+						<div class="stats-period-tabs">
+							<button type="button" class="stat-pill" onclick="mudarPeriodoStats('ULTIMOS_7_DIAS', this)">7 Dias</button>
+							<button type="button" class="stat-pill active" onclick="mudarPeriodoStats('ULTIMOS_30_DIAS', this)">30 Dias</button>
+							<button type="button" class="stat-pill" onclick="mudarPeriodoStats('ULTIMOS_12_MESES', this)">12 Meses</button>
+							<button type="button" class="stat-pill" onclick="mostrarPeriodoCustom(this)">Personalizado</button>
+
+							<button type="button" class="btn-refresh" style="padding: 6px 12px; margin-left: 6px;" onclick="recarregarEstatisticas(true)" title="Recarregar">
+								<span id="refreshStatsIcon">🔄</span> Atualizar
+							</button>
+						</div>
+					</div>
+
+					<!-- FORMULÁRIO DE PERÍODO PERSONALIZADO -->
+					<div id="boxPeriodoCustom" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); gap: 10px; align-items: center; flex-wrap: wrap;">
+						<span style="font-size: 12px; color: #aaa;">Data Início:</span>
+						<input type="date" id="statsDataInicio" class="filtro-input">
+						<span style="font-size: 12px; color: #aaa;">Data Fim:</span>
+						<input type="date" id="statsDataFim" class="filtro-input">
+						<button type="button" class="btn-refresh" style="padding: 7px 16px;" onclick="aplicarPeriodoCustom()">Aplicar Filtro</button>
+					</div>
+				</div>
+
+				<!-- GRID DE KPIS PRINCIPAIS -->
+				<div class="metrics-grid">
+					<div class="metric-card">
+						<span class="metric-title">FATURAMENTO TOTAL</span>
+						<strong class="metric-value" id="kpiFaturamento" style="color: #00e676; font-size: 24px;"
+							th:text="${estatisticas != null and estatisticas.faturamentoTotal != null ? 'R$ ' + #numbers.formatDecimal(estatisticas.faturamentoTotal, 1, 'POINT', 2, 'COMMA') : 'R$ 0,00'}">R$ 0,00</strong>
+						<span class="metric-sub">Soma dos pedidos pagos</span>
+					</div>
+
+					<div class="metric-card">
+						<span class="metric-title">PEDIDOS PAGOS</span>
+						<strong class="metric-value" id="kpiTotalPedidos" style="color: #3da9ff; font-size: 24px;"
+							th:text="${estatisticas != null and estatisticas.totalPedidosPagos != null ? estatisticas.totalPedidosPagos : 0}">0</strong>
+						<span class="metric-sub">Vendas aprovadas</span>
+					</div>
+
+					<div class="metric-card">
+						<span class="metric-title">TICKET MÉDIO</span>
+						<strong class="metric-value" id="kpiTicketMedio" style="color: #ffb300; font-size: 24px;"
+							th:text="${estatisticas != null and estatisticas.ticketMedio != null ? 'R$ ' + #numbers.formatDecimal(estatisticas.ticketMedio, 1, 'POINT', 2, 'COMMA') : 'R$ 0,00'}">R$ 0,00</strong>
+						<span class="metric-sub">Média por pedido pago</span>
+					</div>
+
+					<div class="metric-card">
+						<span class="metric-title">PRODUTO MAIS VENDIDO</span>
+						<strong class="metric-value" id="kpiTopProdutoNome" style="color: #ff3366; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+							th:text="${estatisticas != null and estatisticas.produtoMaisVendido != null ? estatisticas.produtoMaisVendido.nome : '-'}">-</strong>
+						<span class="metric-sub" id="kpiTopProdutoSub"
+							th:text="${estatisticas != null and estatisticas.produtoMaisVendido != null ? (estatisticas.produtoMaisVendido.quantidadeVendida + ' un. vendidas') : '0 un. vendidas'}">0 un. vendidas</span>
+					</div>
+				</div>
+
+				<!-- DESTAQUES SECUNDÁRIOS -->
+				<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+					<div class="highlight-card">
+						<span class="metric-title">PRODUTO MENOS VENDIDO</span>
+						<strong id="cardWorstProdutoNome" style="color: #fff; font-size: 15px; margin-top: 4px;"
+							th:text="${estatisticas != null and estatisticas.produtoMenosVendido != null ? estatisticas.produtoMenosVendido.nome : '-'}">-</strong>
+						<span id="cardWorstProdutoSub" style="font-size: 12px; color: #888;"
+							th:text="${estatisticas != null and estatisticas.produtoMenosVendido != null ? (estatisticas.produtoMenosVendido.quantidadeVendida + ' un. vendidas • R$ ' + #numbers.formatDecimal(estatisticas.produtoMenosVendido.totalFaturado, 1, 'POINT', 2, 'COMMA')) : '0 un. vendidas • R$ 0,00'}">0 un. vendidas • R$ 0,00</span>
+					</div>
+
+					<div class="highlight-card green">
+						<span class="metric-title">CLIENTE RECORDISTA (MAIOR COMPRADOR)</span>
+						<strong id="cardTopClienteNome" style="color: #fff; font-size: 15px; margin-top: 4px;"
+							th:text="${estatisticas != null and estatisticas.clienteMaiorComprador != null ? estatisticas.clienteMaiorComprador.nome : '-'}">-</strong>
+						<span id="cardTopClienteSub" style="font-size: 12px; color: #888;"
+							th:text="${estatisticas != null and estatisticas.clienteMaiorComprador != null ? ('R$ ' + #numbers.formatDecimal(estatisticas.clienteMaiorComprador.valorTotalGasto, 1, 'POINT', 2, 'COMMA') + ' • ' + estatisticas.clienteMaiorComprador.totalPedidos + ' pedidos') : 'R$ 0,00 • 0 pedidos'}">R$ 0,00 • 0 pedidos</span>
+					</div>
+
+					<div class="highlight-card amber">
+						<span class="metric-title">CLIENTE MENOR COMPRADOR</span>
+						<strong id="cardWorstClienteNome" style="color: #fff; font-size: 15px; margin-top: 4px;"
+							th:text="${estatisticas != null and estatisticas.clienteMenorComprador != null ? estatisticas.clienteMenorComprador.nome : '-'}">-</strong>
+						<span id="cardWorstClienteSub" style="font-size: 12px; color: #888;"
+							th:text="${estatisticas != null and estatisticas.clienteMenorComprador != null ? ('R$ ' + #numbers.formatDecimal(estatisticas.clienteMenorComprador.valorTotalGasto, 1, 'POINT', 2, 'COMMA') + ' • ' + estatisticas.clienteMenorComprador.totalPedidos + ' pedidos') : 'R$ 0,00 • 0 pedidos'}">R$ 0,00 • 0 pedidos</span>
+					</div>
+
+					<div class="highlight-card pink">
+						<span class="metric-title">DIAS RECORDES</span>
+						<div style="font-size: 13px; color: #ddd; margin-top: 4px;">
+							🥇 Maior: <span id="cardTopDia" style="color: #00e676; font-weight: 700;"
+								th:text="${estatisticas != null and estatisticas.diaMaiorVenda != null ? (estatisticas.diaMaiorVenda.data + ' (R$ ' + #numbers.formatDecimal(estatisticas.diaMaiorVenda.valorFaturado, 1, 'POINT', 2, 'COMMA') + ' - ' + estatisticas.diaMaiorVenda.totalVendas + ' ped.)') : '-'}">-</span>
+						</div>
+						<div style="font-size: 13px; color: #ddd; margin-top: 2px;">
+							📉 Menor: <span id="cardWorstDia" style="color: #ff3366; font-weight: 700;"
+								th:text="${estatisticas != null and estatisticas.diaMenorVenda != null ? (estatisticas.diaMenorVenda.data + ' (R$ ' + #numbers.formatDecimal(estatisticas.diaMenorVenda.valorFaturado, 1, 'POINT', 2, 'COMMA') + ' - ' + estatisticas.diaMenorVenda.totalVendas + ' ped.)') : '-'}">-</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- GRÁFICO INTERATIVO DE EVOLUÇÃO TEMPORAL -->
+				<div class="card" style="padding: 20px;">
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+						<div>
+							<h3 style="font-size: 16px; font-weight: 700; color: #fff;">Evolução de Vendas no Período</h3>
+							<p style="font-size: 12px; color: #888;">Faturamento e volume diário/mensal de vendas</p>
+						</div>
+						<div style="display: flex; gap: 14px; font-size: 12px;">
+							<span style="color: #00e676; display: flex; align-items: center; gap: 4px;">● Faturamento (R$)</span>
+							<span style="color: #3da9ff; display: flex; align-items: center; gap: 4px;">● Qtd Pedidos</span>
+						</div>
+					</div>
+					<div style="position: relative; width: 100%; height: 320px;">
+						<canvas id="graficoEvolucaoVendas"></canvas>
+					</div>
+				</div>
+
+				<!-- RANKING DE PRODUTOS -->
+				<div class="card" style="padding: 20px;">
+					<h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px;">Ranking de Desempenho por Produto</h3>
+					<div class="table-responsive">
+						<table>
+							<thead>
+								<tr>
+									<th>Posição</th>
+									<th>Produto</th>
+									<th>Quantidade Vendida</th>
+									<th>Faturamento Total</th>
+									<th>Participação Estimada</th>
+								</tr>
+							</thead>
+							<tbody id="tabelaRankingProdutos">
+								<tr th:if="${estatisticas == null || estatisticas.vendasPorProduto == null || #lists.isEmpty(estatisticas.vendasPorProduto)}">
+									<td colspan="5" style="text-align: center; color: #888; padding: 30px;">
+										Nenhum produto com registro de vendas no período.
+									</td>
+								</tr>
+								<tr th:each="p, iter : ${estatisticas?.vendasPorProduto}">
+									<td style="font-weight: 700; color: #3da9ff; font-family: 'JetBrains Mono', monospace;"
+										th:text="${iter.index == 0 ? '🥇 #1' : (iter.index == 1 ? '🥈 #2' : (iter.index == 2 ? '🥉 #3' : '#' + (iter.index + 1)))}"></td>
+									<td style="font-weight: 700; color: #fff;" th:text="${p.nome}"></td>
+									<td>
+										<div style="display: flex; align-items: center; gap: 8px;">
+											<span style="font-weight: 700; color: #00e676; min-width: 30px;" th:text="${p.quantidadeVendida + ' un.'}"></span>
+										</div>
+									</td>
+									<td style="font-weight: 700; color: #00e676; font-family: 'JetBrains Mono', monospace;"
+										th:text="${'R$ ' + #numbers.formatDecimal(p.totalFaturado, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td>
+										<span style="font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(0, 153, 255, 0.12); color: #3da9ff; font-weight: 700;"
+											th:text="${estatisticas.faturamentoTotal != null && estatisticas.faturamentoTotal.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? #numbers.formatDecimal(p.totalFaturado.multiply(new java.math.BigDecimal(100)).divide(estatisticas.faturamentoTotal, 1, T(java.math.RoundingMode).HALF_UP), 1, 'POINT', 1, 'COMMA') + '% do faturamento' : '0% do faturamento'}">
+										</span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="card" th:if="${contexto != 'pedidos' and contexto != 'estatisticas'}">
+				<h2 class="titulo-centralizado"
+					th:text="${contexto == 'produtos' ? 'Produtos Cadastrados' : (contexto == 'usuarios' ? 'Usuários do Sistema' : 'Categorias Cadastradas')}">
+					Listagem
+				</h2>
+
+				<table>
+					<thead>
+						<!-- CABEÇALHO PARA PRODUTOS -->
+						<tr th:if="${contexto == 'produtos'}">
+							<th>#</th>
+							<th>Código</th>
+							<th>Nome</th>
+							<th>Descrição</th>
+							<th>Valor</th>
+							<th>Ações</th>
+						</tr>
+
+						<!-- CABEÇALHO PARA USUÁRIOS -->
+						<tr th:if="${contexto == 'usuarios'}">
+							<th>#</th>
+							<th>Nome</th>
+							<th>Email</th>
+							<th>Permissão</th>
+							<th>Ações</th>
+						</tr>
+
+						<!-- CABEÇALHO PADRÃO (CATEGORIAS) -->
+						<tr th:if="${contexto != 'produtos' and contexto != 'usuarios'}">
+							<th>#</th>
+							<th>Nome</th>
+							<th>Ações</th>
+						</tr>
+					</thead>
+
+					<tbody>
+						<!-- LISTA DE PRODUTOS -->
+						<tr th:if="${contexto == 'produtos'}" th:each="item, iter : ${categorias}">
+							<td th:text="${iter.index + 1}"></td>
+							<td th:text="${item.codigoProduto}"></td>
+							<td th:text="${item.nome}"></td>
+							<td th:text="${item.descricao}"></td>
+							<td th:text="'R$ ' + ${#numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+							<td class="acoes">
+								<button type="button" class="edit"
+									th:attr="data-id=${item.idProduto}, data-codigo=${item.codigoProduto}, data-nome=${item.nome}, data-descricao=${item.descricao}, data-valor=${item.valor}, data-categoria=${item.categoria != null ? item.categoria.idCategoria : ''}"
+									onclick="abrirEdicaoProduto(this)">Editar</button>
+
+								<form method="post" th:action="@{/removerProduto}" style="margin: 0;">
+									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<input type="hidden" name="idProduto" th:value="${item.idProduto}" />
+									<button type="submit" class="delete">Excluir</button>
+								</form>
+							</td>
+						</tr>
+
+						<!-- LISTA DE USUÁRIOS -->
+						<tr th:if="${contexto == 'usuarios'}" th:each="user, iter : ${usuarios}">
+							<td th:text="${iter.index + 1}"></td>
+							<td th:text="${user.nome}"></td>
+							<td th:text="${user.email}"></td>
+							<td th:text="${user.acesso}"></td>
+							<td class="acoes">
+								<!-- Alterar Permissão -->
+								<form method="post" th:action="@{/usuarios/alterar-role/{id}(id=${user.idUsuario})}"
+									style="margin: 0;">
+									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<button type="submit" class="edit">
+										Tornar <span
+											th:text="${user.acesso.name() == 'ADMIN' ? 'USER' : 'ADMIN'}"></span>
+									</button>
+								</form>
+
+								<!-- Excluir Usuário -->
+								<form method="post" th:action="@{/usuarios/excluir/{id}(id=${user.idUsuario})}"
+									style="margin: 0;">
+									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<button type="submit" class="delete"
+										onclick="return confirm('Deseja realmente excluir este usuário?')">Excluir</button>
+								</form>
+							</td>
+						</tr>
+
+						<!-- LISTA DE CATEGORIAS -->
+						<tr th:if="${contexto != 'produtos' and contexto != 'usuarios'}"
+							th:each="item, iter : ${categorias}">
+							<td th:text="${iter.index + 1}"></td>
+							<td th:text="${item.nome}"></td>
+							<td class="acoes">
+								<button type="button" class="edit"
+									th:attr="data-id=${item.idCategoria}, data-nome=${item.nome}"
+									onclick="abrirEdicaoCategoria(this)">Editar</button>
+
+								<form method="post" th:action="@{/removerCategoria}" style="margin: 0;">
+									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<input type="hidden" name="idCategoria" th:value="${item.idCategoria}" />
+									<button type="submit" class="delete">Excluir</button>
+								</form>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- MODAL FORMULÁRIO (CATEGORIAS E PRODUTOS) -->
+			<div class="modal-overlay" id="modalOverlay" onclick="fecharForm()"></div>
+
+			<div class="card form-card" id="formCard">
+				<h2 id="formTitulo">Formulário</h2>
+
+				<form method="post" id="dinamicoForm" enctype="multipart/form-data">
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+					<input type="hidden" name="idCategoria" id="idCategoria">
+
+					<div id="camposLeituraProduto" style="display: none; flex-direction: column; gap: 10px;">
+						<label for="idProduto">ID do Produto (UUID)</label>
+						<input type="text" name="idProduto" id="idProduto" readonly
+							style="background: rgba(255,255,255,0.02); color: #888; cursor: not-allowed;" />
+
+						<label for="codigoProduto">Código do Produto</label>
+						<input type="text" name="codigoProduto" id="codigoProduto" readonly
+							style="background: rgba(255,255,255,0.02); color: #888; cursor: not-allowed;" />
+					</div>
+
+					<label for="nome">Nome</label>
+					<input type="text" name="nome" id="nome" required />
+
+					<div id="camposProduto" style="display: none; flex-direction: column; gap: 10px;">
+						<label for="descricao">Descrição</label>
+						<input type="text" name="descricao" id="descricao" required />
+
+						<label for="valor">Valor (R$)</label>
+						<input type="number" name="valor" id="valor" step="0.01" min="0" required />
+
+						<label for="selectCategoria">Categoria</label>
+						<select name="categoria" id="selectCategoria" required
+							style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); background: #111; color: white; outline: none; font-family: inherit;">
+							<option value="" disabled selected>Selecione uma categoria...</option>
+							<option th:each="cat : ${listaCategoriasCompleta}" th:value="${cat.idCategoria}"
+								th:text="${cat.nome}"></option>
+						</select>
+
+						<label for="foto">Foto do Produto</label>
+						<input type="file" name="arquivoFoto" id="foto" accept="image/*" />
+					</div>
+
+					<div class="actions">
+						<button type="submit" class="save" id="botaoSubmit">Salvar</button>
+						<button type="button" class="cancel" onclick="fecharForm()">Cancelar</button>
+					</div>
+				</form>
+			</div>
+
+		</main>
+	</div>
+
+	<script>
+		const formCard = document.getElementById("formCard");
+		const modalOverlay = document.getElementById("modalOverlay");
+		const formTitulo = document.getElementById("formTitulo");
+		const dinamicoForm = document.getElementById("dinamicoForm");
+		const camposProduto = document.getElementById("camposProduto");
+		const camposLeituraProduto = document.getElementById("camposLeituraProduto");
+		const botaoSubmit = document.getElementById("botaoSubmit");
+
+		const inputDescricao = document.getElementById("descricao");
+		const inputValor = document.getElementById("valor");
+		const selectCategoria = document.getElementById("selectCategoria");
+
+		function novaCategoria() {
+			formCard.classList.add("show");
+			modalOverlay.classList.add("show");
+			camposProduto.style.display = "none";
+			camposLeituraProduto.style.display = "none";
+			formTitulo.innerText = "Nova Categoria";
+			dinamicoForm.action = "/adicionarCategoria";
+
+			inputDescricao.removeAttribute("required");
+			inputValor.removeAttribute("required");
+			selectCategoria.removeAttribute("required");
+
+			document.getElementById("idCategoria").value = "";
+			document.getElementById("nome").value = "";
+			botaoSubmit.innerText = "Salvar";
+		}
+
+		function abrirEdicaoCategoria(botao) {
+			formCard.classList.add("show");
+			modalOverlay.classList.add("show");
+			camposProduto.style.display = "none";
+			camposLeituraProduto.style.display = "none";
+			formTitulo.innerText = "Editar Categoria";
+			dinamicoForm.action = "/editarCategoria";
+
+			inputDescricao.removeAttribute("required");
+			inputValor.removeAttribute("required");
+			selectCategoria.removeAttribute("required");
+
+			document.getElementById("idCategoria").value = botao.getAttribute("data-id");
+			document.getElementById("nome").value = botao.getAttribute("data-nome");
+			botaoSubmit.innerText = "Salvar Edição";
+		}
+
+		function novoProduto() {
+			formCard.classList.add("show");
+			modalOverlay.classList.add("show");
+			camposProduto.style.display = "flex";
+			camposLeituraProduto.style.display = "none";
+			formTitulo.innerText = "Novo Produto";
+			dinamicoForm.action = "/adicionarProduto";
+
+			inputDescricao.setAttribute("required", "");
+			inputValor.setAttribute("required", "");
+			selectCategoria.setAttribute("required", "");
+
+			document.getElementById("idProduto").value = "";
+			document.getElementById("codigoProduto").value = "";
+			document.getElementById("nome").value = "";
+			document.getElementById("descricao").value = "";
+			document.getElementById("valor").value = "";
+			selectCategoria.value = "";
+			document.getElementById("foto").value = "";
+
+			botaoSubmit.innerText = "Salvar";
+		}
+
+		function abrirEdicaoProduto(botao) {
+			formCard.classList.add("show");
+			modalOverlay.classList.add("show");
+			camposProduto.style.display = "flex";
+			camposLeituraProduto.style.display = "flex";
+			formTitulo.innerText = "Editar Produto";
+			dinamicoForm.action = "/editarProduto";
+
+			inputDescricao.setAttribute("required", "");
+			inputValor.setAttribute("required", "");
+			selectCategoria.setAttribute("required", "");
+
+			document.getElementById("idProduto").value = botao.getAttribute("data-id");
+			document.getElementById("codigoProduto").value = botao.getAttribute("data-codigo");
+			document.getElementById("nome").value = botao.getAttribute("data-nome");
+			document.getElementById("descricao").value = botao.getAttribute("data-descricao");
+			document.getElementById("valor").value = botao.getAttribute("data-valor");
+
+			selectCategoria.value = botao.getAttribute("data-categoria");
+
+			botaoSubmit.innerText = "Salvar Edição";
+		}
+
+		function fecharForm() {
+			formCard.classList.remove("show");
+			modalOverlay.classList.remove("show");
+		}
+
+		/* =========================================================
+		   ATUALIZAÇÃO EM TEMPO REAL DOS PEDIDOS (ADMIN)
+		   ========================================================= */
+		let pedidosCache = [];
+		let pollingAdminInterval = null;
+
+		function formatarMoeda(valor) {
+			return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+		}
+
+		function formatarData(dataIso) {
+			if (!dataIso) return '-';
+			const d = new Date(dataIso);
+			return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR');
+		}
+
+		let statusSelecionado = 'TODOS';
+		let debounceTimeout = null;
+
+		function filtrarDebounce() {
+			clearTimeout(debounceTimeout);
+			debounceTimeout = setTimeout(() => {
+				carregarPedidosAdmin(true);
+			}, 350);
+		}
+
+		function selecionarFiltroStatus(status, btn) {
+			statusSelecionado = status;
+			document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+			if (btn) btn.classList.add("active");
+			carregarPedidosAdmin(true);
+		}
+
+		function limparFiltrosAdmin() {
+			statusSelecionado = 'TODOS';
+			const inputCli = document.getElementById("filtroCliente");
+			const inputIni = document.getElementById("filtroDataInicio");
+			const inputFim = document.getElementById("filtroDataFim");
+			if (inputCli) inputCli.value = '';
+			if (inputIni) inputIni.value = '';
+			if (inputFim) inputFim.value = '';
+
+			document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+			const btnTodos = document.querySelector(".filter-btn");
+			if (btnTodos) btnTodos.classList.add("active");
+
+			carregarPedidosAdmin(true);
+		}
+
+		function aplicarFiltrosAdmin() {
+			carregarPedidosAdmin(true);
+		}
+
+		async function carregarPedidosAdmin(manual = false) {
+			const refreshIcon = document.getElementById("refreshIcon");
+			if (manual && refreshIcon) {
+				refreshIcon.style.display = "inline-block";
+				refreshIcon.style.animation = "spin 0.8s linear infinite";
+			}
+
+			try {
+				const params = new URLSearchParams();
+				if (statusSelecionado && statusSelecionado !== 'TODOS') {
+					params.append('status', statusSelecionado);
+				}
+				const clienteVal = (document.getElementById("filtroCliente")?.value || '').trim();
+				if (clienteVal) {
+					params.append('busca', clienteVal);
+				}
+				const dataInicioVal = document.getElementById("filtroDataInicio")?.value;
+				if (dataInicioVal) {
+					params.append('dataInicio', dataInicioVal + 'T00:00:00');
+				}
+				const dataFimVal = document.getElementById("filtroDataFim")?.value;
+				if (dataFimVal) {
+					params.append('dataFim', dataFimVal + 'T23:59:59');
+				}
+
+				const queryString = params.toString();
+				const url = '/api/v1/admin/pedidos' + (queryString ? '?' + queryString : '');
+
+				const response = await fetch(url);
+				if (!response.ok) {
+					console.warn("Falha ao obter lista de pedidos via API:", response.status);
+					return;
+				}
+
+				const data = await response.json();
+				const pedidos = Array.isArray(data) ? data : (data.content || []);
+				pedidosCache = pedidos;
+				renderizarTabelaPedidos(pedidos);
+				atualizarMetricas(pedidos);
+			} catch (err) {
+				console.error("Erro na atualização de pedidos:", err);
+			} finally {
+				if (manual && refreshIcon) {
+					setTimeout(() => {
+						refreshIcon.style.animation = "none";
+					}, 500);
+				}
+			}
+		}
+
+		function renderizarTabelaPedidos(pedidos) {
+			const tbody = document.getElementById("pedidosTbody");
+			if (!tbody) return;
+
+			if (!pedidos || pedidos.length === 0) {
+				tbody.innerHTML = `
+					<tr>
+						<td colspan="6" style="text-align: center; color: #888; padding: 40px;">
+							Nenhum pedido encontrado para os filtros selecionados.
+						</td>
+					</tr>
+				`;
+				return;
+			}
+
+			tbody.innerHTML = pedidos.map(p => {
+				const statusClass = (p.status || '').toLowerCase();
+				const shortId = p.id ? p.id.substring(0, 8) + '...' : '-';
+				const paymentIdHtml = p.paymentId ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">MP ID: ${p.paymentId}</div>` : '';
+				const cpfHtml = p.cpfCliente ? `<div style="font-size: 11px; color: #777;">CPF: ${p.cpfCliente}</div>` : '';
+				const telHtml = p.telefoneCliente ? `<div style="font-size: 11px; color: #777;">Tel: ${p.telefoneCliente}</div>` : '';
+				const metodoBadge = (p.metodoPagamento || '').toLowerCase() === 'pix' ? '⚡ PIX' : '💳 CARTÃO';
+
+				return `
+					<tr data-status="${p.status}">
+						<td style="text-align: left;">
+							<div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #3da9ff; display: flex; align-items: center; gap: 6px;">
+								<span>${shortId}</span>
+								<button type="button" class="btn-copy-id" data-uuid="${p.id}" onclick="copiarUuid(this)" title="Copiar UUID Completo">📋</button>
+							</div>
+							<div style="font-size: 12px; color: #888; margin-top: 4px;">${formatarData(p.dataCriacao)}</div>
+							${paymentIdHtml}
+						</td>
+						<td style="text-align: left;">
+							<div style="font-weight: 700; color: #fff;">${p.nomeCliente || 'Cliente NXT Drive'}</div>
+							<div style="font-size: 12px; color: #aaa;">${p.emailPagador || '-'}</div>
+							${cpfHtml}
+							${telHtml}
+						</td>
+						<td style="text-align: left; max-width: 250px;">
+							<div style="font-size: 13px; color: #e0e0e0; line-height: 1.4;">${p.itensDescricao || '-'}</div>
+						</td>
+						<td style="text-align: left; max-width: 280px;">
+							<div style="font-size: 12px; color: #ccc; line-height: 1.4;">
+								📍 ${p.enderecoCompleto || 'Endereço não informado'}
+							</div>
+						</td>
+						<td>
+							<span class="badge-status badge-status-${statusClass}">${p.status}</span>
+						</td>
+						<td style="text-align: right;">
+							<div style="font-size: 16px; font-weight: 700; color: #00e676; font-family: 'JetBrains Mono', monospace;">${formatarMoeda(p.valorTotal)}</div>
+							<div style="margin-top: 4px;">
+								<span class="badge-metodo">${metodoBadge}</span>
+							</div>
+						</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		function atualizarMetricas(pedidos) {
+			const total = pedidos.length;
+			let pagos = 0;
+			let pendentes = 0;
+			let cancelados = 0;
+			let rejeitados = 0;
+			let faturamento = 0;
+
+			pedidos.forEach(p => {
+				const status = (p.status || '').toUpperCase();
+				if (status === 'PAGO' || status === 'APROVADO') {
+					pagos++;
+					faturamento += Number(p.valorTotal || 0);
+				} else if (status === 'PENDENTE' || status === 'AGUARDANDO_PAGAMENTO' || status === 'EM_PROCESSAMENTO') {
+					pendentes++;
+				} else if (status === 'CANCELADO') {
+					cancelados++;
+				} else {
+					rejeitados++;
+				}
+			});
+
+			const elTotal = document.getElementById("metricaTotalPedidos");
+			const elPagos = document.getElementById("metricaPagos");
+			const elPend = document.getElementById("metricaPendentes");
+			const elFat = document.getElementById("metricaFaturamento");
+			const elCountTodos = document.getElementById("countTodos");
+			const elCountPago = document.getElementById("countPago");
+			const elCountPendente = document.getElementById("countPendente");
+			const elCountCancelado = document.getElementById("countCancelado");
+			const elCountRejeitado = document.getElementById("countRejeitado");
+
+			if (elTotal) elTotal.innerText = total;
+			if (elPagos) elPagos.innerText = pagos;
+			if (elPend) elPend.innerText = pendentes;
+			if (elFat) elFat.innerText = formatarMoeda(faturamento);
+
+			if (elCountTodos) elCountTodos.innerText = total;
+			if (elCountPago) elCountPago.innerText = pagos;
+			if (elCountPendente) elCountPendente.innerText = pendentes;
+			if (elCountCancelado) elCountCancelado.innerText = cancelados;
+			if (elCountRejeitado) elCountRejeitado.innerText = rejeitados;
+		}
+
+		function copiarUuid(btn) {
+			const uuid = btn.getAttribute("data-uuid");
+			if (!uuid) return;
+			navigator.clipboard.writeText(uuid).then(() => {
+				const orig = btn.innerText;
+				btn.innerText = "✓";
+				setTimeout(() => { btn.innerText = orig; }, 2000);
+			});
+		}
+
+		/* =========================================================
+		   MÓDULO DE ANALYTICS & ESTATÍSTICAS (ADMIN)
+		   ========================================================= */
+		let chartInstance = null;
+		let periodoStatsAtual = 'ULTIMOS_30_DIAS';
+		let statsCustomInicio = null;
+		let statsCustomFim = null;
+
+		function mudarPeriodoStats(periodo, btn) {
+			periodoStatsAtual = periodo;
+			statsCustomInicio = null;
+			statsCustomFim = null;
+			document.querySelectorAll(".stat-pill").forEach(p => p.classList.remove("active"));
+			if (btn) btn.classList.add("active");
+			const box = document.getElementById("boxPeriodoCustom");
+			if (box) box.style.display = "none";
+			carregarEstatisticasAdmin(periodo, null, null, true);
+		}
+
+		function mostrarPeriodoCustom(btn) {
+			periodoStatsAtual = 'CUSTOM';
+			document.querySelectorAll(".stat-pill").forEach(p => p.classList.remove("active"));
+			if (btn) btn.classList.add("active");
+			const box = document.getElementById("boxPeriodoCustom");
+			if (box) box.style.display = "flex";
+		}
+
+		function aplicarPeriodoCustom() {
+			const ini = document.getElementById("statsDataInicio")?.value;
+			const fim = document.getElementById("statsDataFim")?.value;
+			if (!ini || !fim) {
+				alert("Por favor, selecione as datas de início e fim.");
+				return;
+			}
+			statsCustomInicio = ini + "T00:00:00";
+			statsCustomFim = fim + "T23:59:59";
+			carregarEstatisticasAdmin('CUSTOM', statsCustomInicio, statsCustomFim, true);
+		}
+
+		function recarregarEstatisticas(manual = false) {
+			carregarEstatisticasAdmin(periodoStatsAtual, statsCustomInicio, statsCustomFim, manual);
+		}
+
+		async function carregarEstatisticasAdmin(periodo, inicio, fim, manual = false) {
+			const refreshIcon = document.getElementById("refreshStatsIcon");
+			if (manual && refreshIcon) {
+				refreshIcon.style.display = "inline-block";
+				refreshIcon.style.animation = "spin 0.8s linear infinite";
+			}
+
+			try {
+				const params = new URLSearchParams();
+				if (periodo) params.append('periodo', periodo);
+				if (inicio) params.append('dataInicio', inicio);
+				if (fim) params.append('dataFim', fim);
+
+				const url = '/api/v1/admin/estatisticas?' + params.toString();
+				const res = await fetch(url);
+				if (!res.ok) {
+					console.warn("Falha ao carregar estatísticas:", res.status);
+					return;
+				}
+
+				const stats = await res.json();
+				renderizarEstatisticas(stats);
+			} catch (err) {
+				console.error("Erro ao carregar estatísticas:", err);
+			} finally {
+				if (manual && refreshIcon) {
+					setTimeout(() => {
+						refreshIcon.style.animation = "none";
+					}, 500);
+				}
+			}
+		}
+
+		function renderizarEstatisticas(stats) {
+			if (!stats) return;
+
+			// KPIs principais
+			const elFat = document.getElementById("kpiFaturamento");
+			const elQtd = document.getElementById("kpiTotalPedidos");
+			const elTkt = document.getElementById("kpiTicketMedio");
+			const elTopNome = document.getElementById("kpiTopProdutoNome");
+			const elTopSub = document.getElementById("kpiTopProdutoSub");
+
+			if (elFat) elFat.innerText = formatarMoeda(stats.faturamentoTotal);
+			if (elQtd) elQtd.innerText = stats.totalPedidosPagos || 0;
+			if (elTkt) elTkt.innerText = formatarMoeda(stats.ticketMedio);
+
+			if (stats.produtoMaisVendido) {
+				if (elTopNome) elTopNome.innerText = stats.produtoMaisVendido.nome || '-';
+				if (elTopSub) elTopSub.innerText = `${stats.produtoMaisVendido.quantidadeVendida || 0} un. • ${formatarMoeda(stats.produtoMaisVendido.totalFaturado)}`;
+			} else {
+				if (elTopNome) elTopNome.innerText = 'Nenhuma venda';
+				if (elTopSub) elTopSub.innerText = '0 un. vendidas';
+			}
+
+			// Destaques secundários
+			const elWorstProdNome = document.getElementById("cardWorstProdutoNome");
+			const elWorstProdSub = document.getElementById("cardWorstProdutoSub");
+			if (stats.produtoMenosVendido) {
+				if (elWorstProdNome) elWorstProdNome.innerText = stats.produtoMenosVendido.nome || '-';
+				if (elWorstProdSub) elWorstProdSub.innerText = `${stats.produtoMenosVendido.quantidadeVendida || 0} un. • ${formatarMoeda(stats.produtoMenosVendido.totalFaturado)}`;
+			} else {
+				if (elWorstProdNome) elWorstProdNome.innerText = '-';
+				if (elWorstProdSub) elWorstProdSub.innerText = '-';
+			}
+
+			const elTopCliNome = document.getElementById("cardTopClienteNome");
+			const elTopCliSub = document.getElementById("cardTopClienteSub");
+			if (stats.clienteMaiorComprador) {
+				if (elTopCliNome) elTopCliNome.innerText = stats.clienteMaiorComprador.nome || stats.clienteMaiorComprador.email || '-';
+				if (elTopCliSub) elTopCliSub.innerText = `${formatarMoeda(stats.clienteMaiorComprador.valorTotalGasto)} • ${stats.clienteMaiorComprador.totalPedidos} pedidos`;
+			} else {
+				if (elTopCliNome) elTopCliNome.innerText = '-';
+				if (elTopCliSub) elTopCliSub.innerText = '-';
+			}
+
+			const elWorstCliNome = document.getElementById("cardWorstClienteNome");
+			const elWorstCliSub = document.getElementById("cardWorstClienteSub");
+			if (stats.clienteMenorComprador) {
+				if (elWorstCliNome) elWorstCliNome.innerText = stats.clienteMenorComprador.nome || stats.clienteMenorComprador.email || '-';
+				if (elWorstCliSub) elWorstCliSub.innerText = `${formatarMoeda(stats.clienteMenorComprador.valorTotalGasto)} • ${stats.clienteMenorComprador.totalPedidos} pedidos`;
+			} else {
+				if (elWorstCliNome) elWorstCliNome.innerText = '-';
+				if (elWorstCliSub) elWorstCliSub.innerText = '-';
+			}
+
+			const elTopDia = document.getElementById("cardTopDia");
+			const elWorstDia = document.getElementById("cardWorstDia");
+			if (stats.diaMaiorVenda) {
+				if (elTopDia) elTopDia.innerText = `${stats.diaMaiorVenda.data} (${formatarMoeda(stats.diaMaiorVenda.valorFaturado)} - ${stats.diaMaiorVenda.totalVendas} ped.)`;
+			} else {
+				if (elTopDia) elTopDia.innerText = '-';
+			}
+			if (stats.diaMenorVenda) {
+				if (elWorstDia) elWorstDia.innerText = `${stats.diaMenorVenda.data} (${formatarMoeda(stats.diaMenorVenda.valorFaturado)} - ${stats.diaMenorVenda.totalVendas} ped.)`;
+			} else {
+				if (elWorstDia) elWorstDia.innerText = '-';
+			}
+
+			// Renderiza Tabela de Ranking de Produtos
+			renderizarTabelaRankingProdutos(stats.vendasPorProduto, stats.faturamentoTotal);
+
+			// Renderiza Gráfico Chart.js
+			renderizarGraficoEvolucao(stats.faturamentoPorPeriodo);
+		}
+
+		function renderizarTabelaRankingProdutos(produtos, faturamentoTotal) {
+			const tbody = document.getElementById("tabelaRankingProdutos");
+			if (!tbody) return;
+
+			if (!produtos || produtos.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888; padding: 30px;">Nenhum produto com registro de vendas no período.</td></tr>`;
+				return;
+			}
+
+			const maxQtd = Math.max(...produtos.map(p => Number(p.quantidadeVendida || 0)), 1);
+			const totalGeral = Number(faturamentoTotal || 0);
+
+			tbody.innerHTML = produtos.map((p, index) => {
+				const qtd = Number(p.quantidadeVendida || 0);
+				const fat = Number(p.totalFaturado || 0);
+				const percQtd = Math.round((qtd / maxQtd) * 100);
+				const percFat = totalGeral > 0 ? ((fat / totalGeral) * 100).toFixed(1) : 0;
+				const medalha = index === 0 ? '🥇 #1' : (index === 1 ? '🥈 #2' : (index === 2 ? '🥉 #3' : `#${index + 1}`));
+
+				return `
+					<tr>
+						<td style="font-weight: 700; color: #3da9ff; font-family: 'JetBrains Mono', monospace;">${medalha}</td>
+						<td style="font-weight: 700; color: #fff;">${p.nome || '-'}</td>
+						<td>
+							<div style="display: flex; align-items: center; gap: 8px;">
+								<span style="font-weight: 700; color: #00e676; min-width: 30px;">${qtd} un.</span>
+								<div class="progress-bar-bg" style="max-width: 120px;">
+									<div class="progress-bar-fill" style="width: ${percQtd}%;"></div>
+								</div>
+							</div>
+						</td>
+						<td style="font-weight: 700; color: #00e676; font-family: 'JetBrains Mono', monospace;">
+							${formatarMoeda(fat)}
+						</td>
+						<td>
+							<span style="font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(0, 153, 255, 0.12); color: #3da9ff; font-weight: 700;">
+								${percFat}% do faturamento
+							</span>
+						</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		function renderizarGraficoEvolucao(dadosPeriodo) {
+			const canvas = document.getElementById("graficoEvolucaoVendas");
+			if (!canvas || typeof Chart === 'undefined') return;
+
+			const labels = (dadosPeriodo || []).map(d => d.periodo);
+			const valoresFaturamento = (dadosPeriodo || []).map(d => Number(d.totalFaturado || 0));
+			const qtdPedidos = (dadosPeriodo || []).map(d => Number(d.quantidadePedidos || 0));
+
+			if (chartInstance) {
+				chartInstance.destroy();
+			}
+
+			const ctx = canvas.getContext("2d");
+			const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+			gradient.addColorStop(0, 'rgba(0, 230, 118, 0.35)');
+			gradient.addColorStop(1, 'rgba(0, 230, 118, 0.0)');
+
+			chartInstance = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: labels,
+					datasets: [
+						{
+							label: 'Faturamento (R$)',
+							data: valoresFaturamento,
+							borderColor: '#00e676',
+							backgroundColor: gradient,
+							borderWidth: 2.5,
+							fill: true,
+							tension: 0.35,
+							pointBackgroundColor: '#00e676',
+							pointBorderColor: '#070a0e',
+							pointRadius: 4,
+							pointHoverRadius: 6,
+							yAxisID: 'y'
+						},
+						{
+							label: 'Qtd de Pedidos',
+							data: qtdPedidos,
+							borderColor: '#3da9ff',
+							backgroundColor: 'rgba(61, 169, 255, 0.1)',
+							borderWidth: 2,
+							borderDash: [4, 4],
+							tension: 0.2,
+							pointBackgroundColor: '#3da9ff',
+							pointRadius: 3,
+							yAxisID: 'y1'
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					interaction: {
+						mode: 'index',
+						intersect: false
+					},
+					plugins: {
+						legend: {
+							display: false
+						},
+						tooltip: {
+							backgroundColor: 'rgba(10, 15, 22, 0.95)',
+							titleColor: '#fff',
+							bodyColor: '#ddd',
+							borderColor: 'rgba(255, 255, 255, 0.1)',
+							borderWidth: 1,
+							padding: 10,
+							callbacks: {
+								label: function(context) {
+									if (context.dataset.yAxisID === 'y') {
+										return 'Faturamento: ' + formatarMoeda(context.parsed.y);
+									}
+									return 'Vendas: ' + context.parsed.y + ' pedido(s)';
+								}
+							}
+						}
+					},
+					scales: {
+						x: {
+							grid: {
+								color: 'rgba(255, 255, 255, 0.05)'
+							},
+							ticks: {
+								color: '#888',
+								font: {
+									size: 11
+								}
+							}
+						},
+						y: {
+							type: 'linear',
+							display: true,
+							position: 'left',
+							grid: {
+								color: 'rgba(255, 255, 255, 0.05)'
+							},
+							ticks: {
+								color: '#00e676',
+								font: {
+									size: 11
+								},
+								callback: function(value) {
+									return 'R$ ' + value;
+								}
+							}
+						},
+						y1: {
+							type: 'linear',
+							display: true,
+							position: 'right',
+							grid: {
+								drawOnChartArea: false
+							},
+							ticks: {
+								color: '#3da9ff',
+								stepSize: 1,
+								font: {
+									size: 11
+								}
+							}
+						}
+					}
+				}
+			});
+		}
+
+		// Inicialização ao carregar o DOM
+		document.addEventListener("DOMContentLoaded", function () {
+			const containerPedidos = document.querySelector(".pedidos-container");
+			if (containerPedidos) {
+				carregarPedidosAdmin(false);
+				pollingAdminInterval = setInterval(() => {
+					carregarPedidosAdmin(false);
+				}, 10000);
+			}
+
+			const containerStats = document.querySelector(".estatisticas-container");
+			if (containerStats) {
+				carregarEstatisticasAdmin('ULTIMOS_30_DIAS', null, null, false);
+			}
+		});
+	</script>
+</body>
+
+</html>

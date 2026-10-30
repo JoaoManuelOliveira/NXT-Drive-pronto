@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>NXT Drive - Login</title>
+	<link rel="stylesheet" th:href="@{/styleIndex.css}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;500;700&family=Syncopate:wght@700&display=swap"
+		rel="stylesheet">
+</head>
+
+<body>
+	<div class="container">
+		<div class="left-side">
+			<div class="logo-box">
+				<img th:src="@{/img/nxtDriveLogo.jpg}" alt="Logo NXT Drive">
+			</div>
+			<h1>NXT <span>DRIVE</span></h1>
+		</div>
+
+		<div class="right-side">
+			<div class="card">
+				<!-- Botões para alternar as abas -->
+				<div class="form-tabs">
+					<button type="button" class="tab-btn active" onclick="switchTab('login')">Login</button>
+					<button type="button" class="tab-btn" onclick="switchTab('cadastro')">Cadastro</button>
+				</div>
+
+				<!-- MENSAGENS DE FEEDBACK (Todas possuem a classe 'msg-box') -->
+
+				<!-- 1. Erro de Login (Spring Security) -->
+				<div th:if="${param.error}" class="msg-box erro-box"
+					style="color: #ff3366; background: rgba(115,0,36,0.2); padding: 12px; border-radius: 8px; border: 1px solid #730024; margin-bottom: 15px; text-align: center; font-weight: bold;">
+					E-mail ou senha incorretos!
+				</div>
+
+				<!-- 2. Sucesso no Cadastro -->
+				<div th:if="${not #strings.isEmpty(sucesso)}" th:text="${sucesso}" class="msg-box sucesso-box"
+					style="color: #00ff88; background: rgba(0,115,36,0.2); padding: 12px; border-radius: 8px; border: 1px solid #007324; margin-bottom: 15px; text-align: center; font-weight: bold;">
+				</div>
+
+				<!-- 3. Erro de Cadastro (Ex: E-mail existente) -->
+				<div th:if="${not #strings.isEmpty(erro)}" th:text="${erro}" class="msg-box erro-box"
+					style="color: #ff3366; background: rgba(115,0,36,0.2); padding: 12px; border-radius: 8px; border: 1px solid #730024; margin-bottom: 15px; text-align: center; font-weight: bold;">
+				</div>
+
+				<!-- Formulário de Login -->
+				<form id="form-login" class="form active" th:action="@{/login}" method="post">
+					<h2>Login</h2>
+					<div class="input-group">
+						<label for="username">Email</label>
+						<input type="email" placeholder="Digite seu email" name="email" id="username" required>
+					</div>
+					<div class="input-group">
+						<label for="password">Senha</label>
+						<input type="password" placeholder="Digite sua senha" name="senha" id="password" required>
+					</div>
+					<button class="main-btn" type="submit">Entrar</button>
+				</form>
+
+				<!-- Formulário de Cadastro -->
+				<form id="form-cadastro" class="form hidden" th:action="@{/cadastro}" method="post">
+					<h2>Cadastro</h2>
+					<div class="input-group">
+						<label for="nome-cad">Nome</label>
+						<input type="text" placeholder="Digite seu nome" name="nome" id="nome-cad" required>
+					</div>
+					<div class="input-group">
+						<label for="email-cad">Email</label>
+						<input type="email" placeholder="Digite seu email" name="email" id="email-cad" required>
+					</div>
+					<div class="input-group">
+						<label for="senha-cad">Senha</label>
+						<input type="password" placeholder="Crie uma senha" name="senha" id="senha-cad" required>
+					</div>
+					<button class="main-btn" type="submit">Cadastrar</button>
+				</form>
+
+			</div>
+		</div>
+	</div>
+
+	<script>
+		function switchTab(tab) {
+			const formLogin = document.getElementById('form-login');
+			const formCadastro = document.getElementById('form-cadastro');
+			const tabs = document.querySelectorAll('.tab-btn');
+
+			tabs.forEach(btn => btn.classList.remove('active'));
+
+			if (tab === 'login') {
+				formLogin.classList.remove('hidden');
+				formCadastro.classList.add('hidden');
+				tabs[0].classList.add('active');
+			} else {
+				formCadastro.classList.remove('hidden');
+				formLogin.classList.add('hidden');
+				tabs[1].classList.add('active');
+			}
+		}
+
+		window.addEventListener('DOMContentLoaded', () => {
+			const urlParams = new URLSearchParams(window.location.search);
+
+			// Se a URL tiver ?error, garante que abre a aba de login
+			if (urlParams.has('error')) {
+				switchTab('login');
+			}
+			// Se veio de redirecionamento de erro de cadastro
+			else if (urlParams.get('aba') === 'cadastro' || window.location.pathname.includes('/cadastro')) {
+				switchTab('cadastro');
+			}
+		});
+
+		// Oculta todas as mensagens (.msg-box) após 4 segundos
+		setTimeout(() => {
+			const msgs = document.querySelectorAll('.msg-box');
+			msgs.forEach(msg => msg.style.display = 'none');
+		}, 4000);
+	</script>
+</body>
+
+</html>

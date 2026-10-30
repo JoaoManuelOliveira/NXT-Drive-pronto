@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>NXT Drive</title>
+
+	<link rel="stylesheet" th:href="@{/styleHome.css}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Syncopate:wght@400;700&display=swap"
+		rel="stylesheet">
+
+	<style>
+		/* =========================================================
+		   BOTÃO PAINEL ADMINISTRATIVO E PERFIL
+		   ========================================================= */
+
+		.admin-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+
+			padding: 11px 18px;
+
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			border-radius: 8px;
+
+			background: rgba(255, 255, 255, 0.04);
+
+			color: #fff;
+			text-decoration: none;
+
+			font-family: 'Chakra Petch', sans-serif;
+			font-size: 13px;
+			font-weight: 700;
+
+			letter-spacing: 1px;
+
+			transition:
+				background 0.25s ease,
+				border-color 0.25s ease,
+				transform 0.25s ease,
+				box-shadow 0.25s ease;
+		}
+
+		.admin-btn:hover {
+			background: rgba(255, 255, 255, 0.09);
+			border-color: rgba(255, 255, 255, 0.35);
+
+			transform: translateY(-2px);
+
+			box-shadow:
+				0 8px 25px rgba(0, 0, 0, 0.35);
+		}
+
+		.admin-btn-icon {
+			font-size: 17px;
+			line-height: 1;
+		}
+
+		.admin-btn-text {
+			white-space: nowrap;
+		}
+
+		.admin-btn-arrow {
+			font-size: 16px;
+			opacity: 0.6;
+			transition: transform 0.25s ease;
+		}
+
+		.admin-btn:hover .admin-btn-arrow {
+			transform: translateX(4px);
+			opacity: 1;
+		}
+
+		@media (max-width: 700px) {
+
+			.admin-btn {
+				padding: 9px 12px;
+			}
+
+			.admin-btn-text {
+				display: none;
+			}
+
+		}
+	</style>
+</head>
+
+<body>
+
+	<header class="topbar">
+
+		<div class="logo">
+			<img th:src="@{/img/nxtDriveLogo.jpg}" alt="NXT Drive">
+		</div>
+
+		<nav>
+			<a href="#inicio">Início</a>
+			<a href="#diferenciais">Diferenciais</a>
+			<a href="#produtos">Produtos</a>
+			<a href="#contato">Contato</a>
+		</nav>
+
+		<div class="header-actions">
+
+			<!-- NOME DO USUÁRIO LOGADO & LOGOUT -->
+			<div
+				style="display: flex; align-items: center; gap: 10px; font-family: 'Chakra Petch', sans-serif; font-size: 13px; color: #fff;">
+				<span>Olá, <strong th:text="${nomeUsuario}">Usuário</strong></span>
+				<form th:action="@{/logout}" method="post" style="margin: 0;">
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+					<button type="submit"
+						style="background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.4); color: #ff3366; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700; transition: 0.2s;">
+						SAIR
+					</button>
+				</form>
+			</div>
+
+			<!-- BOTÃO PERFIL DO USUÁRIO -->
+			<button class="admin-btn" onclick="abrirPerfil()" title="Meu Perfil">
+				<span class="admin-btn-icon">👤</span>
+				<span class="admin-btn-text">MEU PERFIL</span>
+			</button>
+
+			<!-- PAINEL ADMINISTRATIVO (Exclusivo para ADMIN) -->
+			<a th:if="${isAdmin}" th:href="@{/dashboard}" class="admin-btn" id="btnPainelAdmin"
+				title="Painel Administrativo">
+				<span class="admin-btn-icon">⚙</span>
+				<span class="admin-btn-text">PAINEL ADMIN</span>
+				<span class="admin-btn-arrow">→</span>
+			</a>
+
+			<button class="search-btn" onclick="abrirBusca()">⌕</button>
+
+			<button class="cart-btn" onclick="abrirCarrinho()">
+				🛒
+				<span id="contadorCarrinho">0</span>
+			</button>
+
+		</div>
+
+	</header>
+
+
+	<section class="hero" id="inicio">
+
+		<div class="hero-content">
+
+			<span class="hero-tag">NXT DRIVE // STORE</span>
+
+			<h1>
+				PEÇAS QUE<br>
+				<span>MOVEM</span> VOCÊ.
+			</h1>
+
+			<p>
+				Performance, estilo e qualidade para o seu carro.
+				Encontre tudo o que precisa em um só lugar.
+			</p>
+
+			<a href="#produtos" class="hero-button">
+				EXPLORAR PRODUTOS
+			</a>
+
+		</div>
+
+		<div class="hero-decoration">
+			<div class="circle"></div>
+			<div class="line"></div>
+			<span>NXT // 01</span>
+		</div>
+
+	</section>
+
+	<!-- DIFERENCIAIS DA LOJA -->
+	<section class="diferenciais-section" id="diferenciais">
+		<div class="diferencial-card">
+			<div class="diferencial-icon">⚡</div>
+			<h3>Envio Expresso</h3>
+			<p>Despacho imediato para todo o Brasil com rastreamento em tempo real.</p>
+		</div>
+
+		<div class="diferencial-card">
+			<div class="diferencial-icon">🛡️</div>
+			<h3>Peças Certificadas</h3>
+			<p>Garantia de procedência e testes rigorosos de qualidade em todo o catálogo.</p>
+		</div>
+
+		<div class="diferencial-card">
+			<div class="diferencial-icon">👨‍🔧</div>
+			<h3>Suporte Especializado</h3>
+			<p>Atendimento guiado por especialistas mecânicos para tirar suas dúvidas.</p>
+		</div>
+
+		<div class="diferencial-card">
+			<div class="diferencial-icon">💳</div>
+			<h3>Pagamento Seguro</h3>
+			<p>Processamento instantâneo via Pix ou cartão com proteção criptografada.</p>
+		</div>
+	</section>
+
+
+	<section class="produtos-section" id="produtos">
+
+		<div class="section-header">
+
+			<div>
+				<span class="section-tag">// CATÁLOGO</span>
+				<h2>Produtos</h2>
+			</div>
+
+			<div class="filtros">
+
+				<button class="filtro ativo" onclick="filtrarProdutos('todos', this)">
+					Todos
+				</button>
+
+				<button th:each="categoria : ${listaCategorias}" class="filtro" th:text="${categoria.nome}"
+					th:attr="data-categoria=${categoria.idCategoria}"
+					onclick="filtrarProdutos(this.getAttribute('data-categoria'), this)">
+				</button>
+
+			</div>
+
+		</div>
+
+
+		<div class="produtos-grid" id="produtosGrid">
+
+			<div class="produto-card" th:each="produto : ${produtos}"
+				th:attr="data-categoria=${produto.categoria != null ? produto.categoria.idCategoria : ''}">
+
+				<div class="produto-imagem">
+
+					<img th:if="${produto.foto != null}" th:src="@{'/produto/imagem/' + ${produto.idProduto}}"
+						th:alt="${produto.nome}">
+
+					<div class="sem-imagem" th:if="${produto.foto == null}">
+						<span>NXT DRIVE</span>
+					</div>
+
+					<div class="produto-categoria" th:if="${produto.categoria != null}"
+						th:text="${produto.categoria.nome}">
+					</div>
+
+				</div>
+
+
+				<div class="produto-info">
+
+					<span class="produto-codigo" th:text="'NXT • ' + ${produto.codigoProduto}">
+					</span>
+
+					<h3 th:text="${produto.nome}">
+						Produto
+					</h3>
+
+					<p th:text="${produto.descricao}">
+						Descrição do produto
+					</p>
+
+					<div class="produto-bottom">
+
+						<strong th:text="'R$ ' + ${#numbers.formatDecimal(produto.valor, 1, 'POINT', 2, 'COMMA')}">
+							R$ 0,00
+						</strong>
+
+						<button class="comprar-btn"
+							th:attr="data-id=${produto.idProduto}, data-nome=${produto.nome}, data-valor=${produto.valor}"
+							onclick="adicionarCarrinho(this)">
+							COMPRAR
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<div class="sem-produtos" th:if="${#lists.isEmpty(produtos)}">
+
+				<div class="sem-produtos-icon">∅</div>
+
+				<h3>Nenhum produto encontrado</h3>
+
+				<p>O catálogo ainda está sendo abastecido.</p>
+
+			</div>
+
+		</div>
+
+	</section>
+
+
+	<section class="banner">
+
+		<div>
+
+			<span>// NXT DRIVE</span>
+
+			<h2>
+				SEU CARRO.<br>
+				SUAS REGRAS.
+			</h2>
+
+			<p>
+				Produtos selecionados para quem não aceita menos que o melhor.
+			</p>
+
+		</div>
+
+		<div class="banner-number">
+			01
+		</div>
+
+	</section>
+
+	<!-- ESTATÍSTICAS DA EMPRESA -->
+	<section class="stats-section">
+		<div class="stat-box">
+			<h2>+15K</h2>
+			<p>Clientes Atendidos</p>
+		</div>
+
+		<div class="stat-box">
+			<h2>100%</h2>
+			<p>Peças Homologadas</p>
+		</div>
+
+		<div class="stat-box">
+			<h2>24/7</h2>
+			<p>Atendimento Online</p>
+		</div>
+
+		<div class="stat-box">
+			<h2>4.9★</h2>
+			<p>Avaliação Média</p>
+		</div>
+	</section>
+
+	<!-- NEWSLETTER CLUB -->
+	<section class="newsletter-section">
+		<div class="newsletter-content">
+			<span class="section-tag">// CLUBE NXT DRIVE</span>
+			<h2>RECEBA OFERTAS EXCLUSIVAS</h2>
+			<p>Cadastre seu e-mail para receber cupons de desconto e lançamentos de peças em primeira mão.</p>
+		</div>
+		<form class="newsletter-form" id="newsletterForm" onsubmit="enviarInscricaoNewsletter(event)">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<input type="email" id="emailNewsletter" placeholder="Seu e-mail principal..." required>
+			<button type="submit" id="btnNewsletter">INSCREVER</button>
+		</form>
+	</section>
+
+	<!-- ÁREA DE CONTATO -->
+	<section class="contato-section" id="contato">
+		<div class="contato-container">
+
+			<div class="contato-info">
+				<span class="section-tag">// SUPORTE & DÚVIDAS</span>
+				<h2>Fale Conosco</h2>
+				<p>Precisa de suporte técnico, confirmação de compatibilidade ou informações sobre seu pedido?</p>
+
+				<div class="info-itens">
+					<div class="info-item">
+						<span class="info-icon">📍</span>
+						<div>
+							<strong>Endereço Central:</strong>
+							<p>Rua Ita, 55, Jd. Ansalca, Guarulhos - SP</p>
+						</div>
+					</div>
+
+					<div class="info-item">
+						<span class="info-icon">📱</span>
+						<div>
+							<strong>WhatsApp Oficial:</strong>
+							<p>+55 (11) 94177-4214</p>
+						</div>
+					</div>
+
+					<div class="info-item">
+						<span class="info-icon">✉️</span>
+						<div>
+							<strong>E-mail de Atendimento:</strong>
+							<p>contato@nxtdrive.com.br</p>
+						</div>
+					</div>
+
+					<div class="info-item">
+						<span class="info-icon">⏰</span>
+						<div>
+							<strong>Horário de Funcionamento:</strong>
+							<p>Segunda a Sexta: 08:00 às 18:00</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="contato-form-card">
+				<h3>Envie uma Mensagem</h3>
+				<form
+					onsubmit="event.preventDefault(); alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');">
+					<label for="contatoNome">Nome Completo</label>
+					<input type="text" id="contatoNome" placeholder="Seu nome" required />
+
+					<label for="contatoEmail">Seu E-mail</label>
+					<input type="email" id="contatoEmail" placeholder="seuemail@exemplo.com" required />
+
+					<label for="contatoAssunto">Assunto</label>
+					<input type="text" id="contatoAssunto" placeholder="Ex: Dúvida sobre Peça / Pedido" required />
+
+					<label for="contatoMensagem">Mensagem</label>
+					<textarea id="contatoMensagem" rows="4" placeholder="Escreva sua mensagem aqui..."
+						required></textarea>
+
+					<button type="submit" class="hero-button"
+						style="width: 100%; border: none; cursor: pointer; margin-top: 10px;">
+						ENVIAR MENSAGEM
+					</button>
+				</form>
+			</div>
+
+		</div>
+	</section>
+
+
+	<footer>
+
+		<div class="footer-logo">
+			NXT<span>DRIVE</span>
+		</div>
+
+		<p>
+			© 2026 NXT Drive. Todos os direitos reservados.
+		</p>
+
+		<span class="footer-code">
+			SYSTEM // ONLINE
+		</span>
+
+	</footer>
+
+
+	<div class="search-overlay" id="searchOverlay">
+
+		<div class="search-box">
+
+			<button class="close-btn" onclick="fecharBusca()">×</button>
+
+			<span>// PESQUISAR</span>
+
+			<input type="text" id="campoBusca" placeholder="Digite o nome do produto..." oninput="buscarProduto()">
+
+		</div>
+
+	</div>
+
+
+	<div class="cart-overlay" id="cartOverlay">
+
+		<div class="cart-box">
+
+			<button class="close-btn" onclick="fecharCarrinho()">×</button>
+
+			<span class="section-tag">// CARRINHO</span>
+
+			<h2>Seu carrinho</h2>
+
+			<div id="listaCarrinho">
+				<p class="carrinho-vazio">
+					Seu carrinho está vazio.
+				</p>
+			</div>
+
+			<div class="carrinho-total">
+
+				<span>Total</span>
+
+				<strong id="valorTotal">
+					R$ 0,00
+				</strong>
+
+			</div>
+
+			<button class="finalizar-btn" onclick="abrirCheckout()">
+				FINALIZAR COMPRA
+			</button>
+
+		</div>
+
+	</div>
+
+	<!-- MODAL DE PERFIL DO USUÁRIO E ENDEREÇO -->
+	<div class="cart-overlay" id="perfilOverlay">
+		<div class="cart-box" style="max-width: 520px; text-align: left; max-height: 90vh; overflow-y: auto;">
+			<button class="close-btn" onclick="fecharPerfil()">×</button>
+			<span class="section-tag">// MINHA CONTA</span>
+			<h2 style="margin: 10px 0 20px; font-size: 26px;">Gerenciar Perfil</h2>
+
+			<form id="formPerfil" onsubmit="salvarPerfil(event)">
+				<label
+					style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Nome
+					Completo</label>
+				<input type="text" id="perfilNome" th:value="${nomeUsuario}" required
+					style="width: 100%; padding: 12px; margin-bottom: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+
+				<label
+					style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">E-mail
+					(deixe em branco para não alterar)</label>
+				<input type="email" id="perfilEmail" th:value="${emailUsuario}"
+					style="width: 100%; padding: 12px; margin-bottom: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+
+				<div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
+					<button type="button" onclick="abrirModalSenha()" class="btn-trocar-senha"
+						style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.35); color: #3da9ff; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-family: 'Chakra Petch', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; transition: 0.2s;">
+						🔒 ALTERAR SENHA DE ACESSO
+					</button>
+				</div>
+
+				<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+				<span
+					style="font-size: 13px; font-weight: bold; color: #3da9ff; display: block; margin-bottom: 15px; font-family: 'JetBrains Mono', monospace;">ENDEREÇO
+					DE ENTREGA</span>
+
+				<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+					<div style="flex: 1;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">CEP
+							*</label>
+						<!-- Alterado para oninput para fazer a busca automática enquanto digita -->
+						<input type="text" id="cepInput" th:value="${cepUsuario}" placeholder="00000-000" maxlength="9"
+							required oninput="validarEBuscarCep(this.value)"
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+					<div style="flex: 2;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Logradouro
+							*</label>
+						<input type="text" id="logradouroInput" th:value="${logradouroUsuario}" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+				</div>
+
+				<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+					<div style="width: 120px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Número
+							*</label>
+						<input type="text" id="numeroInput" th:value="${numeroUsuario}" placeholder="Ex: 123" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+					<div style="flex: 1;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Complemento</label>
+						<input type="text" id="complementoInput" th:value="${complementoUsuario}"
+							placeholder="Ex: Apto 402, Bloco B"
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+				</div>
+
+				<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+					<div style="flex: 1;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Bairro
+							*</label>
+						<input type="text" id="bairroInput" th:value="${bairroUsuario}" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+					<div style="flex: 1;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">Cidade
+							*</label>
+						<input type="text" id="localidadeInput" th:value="${localidadeUsuario}" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+					<div style="width: 75px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">UF
+							*</label>
+						<input type="text" id="ufInput" th:value="${ufUsuario}" maxlength="2" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none; text-transform: uppercase;">
+					</div>
+				</div>
+
+				<button type="submit" id="btnSalvarPerfil" class="finalizar-btn" style="margin-top: 15px;">
+					SALVAR ALTERAÇÕES
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- MODAL ALTERAÇÃO SEGURA DE SENHA -->
+	<div class="cart-overlay" id="senhaOverlay">
+		<div class="cart-box" style="max-width: 440px; text-align: left;">
+			<button class="close-btn" onclick="fecharModalSenha()">×</button>
+			<span class="section-tag">// SEGURANÇA</span>
+			<h2 style="margin: 10px 0 20px; font-size: 24px;">Alterar Senha</h2>
+
+			<form id="formAlterarSenha" onsubmit="confirmarAlteracaoSenha(event)">
+				<div style="margin-bottom: 14px;">
+					<label
+						style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">SENHA
+						ATUAL *</label>
+					<input type="password" id="senhaAtualInput" required placeholder="Digite sua senha atual"
+						style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+				</div>
+
+				<div style="margin-bottom: 14px;">
+					<label
+						style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">NOVA
+						SENHA (MÍNIMO 6 CARACTERES) *</label>
+					<input type="password" id="novaSenhaInput" required minlength="6" placeholder="Nova senha segura"
+						style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+				</div>
+
+				<div style="margin-bottom: 20px;">
+					<label
+						style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;">CONFIRMAR
+						NOVA SENHA *</label>
+					<input type="password" id="confirmarNovaSenhaInput" required minlength="6"
+						placeholder="Repita a nova senha"
+						style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+				</div>
+
+				<button type="submit" id="btnSalvarSenha" class="finalizar-btn" style="padding: 14px;">
+					CONFIRMAR ALTERAÇÃO DE SENHA
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- NOTIFICAÇÃO TOAST E DADOS DO USUÁRIO -->
+	<div class="toast-container" id="toastContainer"></div>
+	<input type="hidden" id="usuarioEmailLogado" th:value="${emailUsuario}">
+	<input type="hidden" id="usuarioNomeLogado" th:value="${nomeUsuario}">
+	<input type="hidden" id="usuarioIsAdmin" th:value="${isAdmin != null and isAdmin ? 'true' : 'false'}">
+
+	<!-- MODAL CHECKOUT MERCADO PAGO (PIX E CARTÃO) -->
+	<div class="cart-overlay" id="checkoutOverlay">
+		<div class="cart-box" style="text-align: left; max-width: 480px; max-height: 90vh; overflow-y: auto;">
+			<button class="close-btn" onclick="fecharCheckout()">×</button>
+			<span class="section-tag">// CHECKOUT SEGURO MERCADO PAGO</span>
+			<h2 style="margin: 10px 0 15px; font-size: 24px;">Finalizar Pagamento</h2>
+
+			<!-- SELETOR DE ABAS PIX / CARTÃO -->
+			<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+				<button id="tabPixBtn" onclick="selecionarAbaCheckout('pix')"
+					style="flex: 1; padding: 12px; background: #3da9ff; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s;">
+					⚡ PIX
+				</button>
+				<button id="tabCartaoBtn" onclick="selecionarAbaCheckout('cartao')"
+					style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s;">
+					💳 CARTÃO
+				</button>
+			</div>
+
+			<div
+				style="background: rgba(255, 255, 255, 0.03); padding: 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+				<span style="font-size: 13px; color: #aaa;">Total a Pagar:</span>
+				<strong id="checkoutTotalDisplay"
+					style="font-size: 20px; color: #3da9ff; font-family: 'JetBrains Mono', monospace;">R$ 0,00</strong>
+			</div>
+
+			<!-- CONTEÚDO DA ABA PIX -->
+			<div id="abaPixConteudo" style="text-align: center;">
+				<div id="pixCarregando" style="display: none; padding: 30px 10px; color: #aaa;">
+					<div style="font-size: 28px; margin-bottom: 10px;">⏳</div>
+					<span>Gerando QR Code Pix via Mercado Pago...</span>
+				</div>
+
+				<div id="pixDetalhes" style="display: none;">
+					<div
+						style="background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 8px; text-align: left; font-size: 12px; line-height: 1.6; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.08);">
+						<strong
+							style="color: #3da9ff; display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace;">INSTRUÇÕES:</strong>
+						1. Abra o app do seu banco e selecione Pix Copia e Cola.<br>
+						2. Cole o código ou escaneie o QR Code abaixo.<br>
+						3. O sistema confirmará o pagamento automaticamente!
+					</div>
+
+					<div
+						style="background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin-bottom: 15px;">
+						<img id="qrCodeImg" src="" alt="QR Code Pix Mercado Pago"
+							style="width: 190px; height: 190px; display: block;">
+					</div>
+
+					<input type="hidden" id="pixCopiaColaInput">
+
+					<button id="btnCopiarPix" class="finalizar-btn" style="margin-bottom: 10px; padding: 12px;"
+						onclick="copiarPixCode()">
+						📋 COPIAR CÓDIGO PIX
+					</button>
+
+					<div id="pixStatusBadge"
+						style="margin-top: 10px; padding: 10px; border-radius: 6px; background: rgba(61, 169, 255, 0.1); border: 1px solid #3da9ff; color: #3da9ff; font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+						Aguardando pagamento... ⏳
+					</div>
+				</div>
+			</div>
+
+			<!-- CONTEÚDO DA ABA CARTÃO DE CRÉDITO -->
+			<div id="abaCartaoConteudo" style="display: none;">
+				<form id="formCartaoCheckout" onsubmit="processarPagamentoCartaoFrontend(event)">
+					<div style="margin-bottom: 12px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">NÚMERO
+							DO CARTÃO</label>
+						<input type="text" id="cartaoNumero" maxlength="19" placeholder="0000 0000 0000 0000" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+
+					<div style="margin-bottom: 12px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">NOME
+							IMPRESSO NO CARTÃO</label>
+						<input type="text" id="cartaoNome" placeholder="Ex: NOME COMPLETO" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none; text-transform: uppercase;">
+					</div>
+
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+						<div>
+							<label
+								style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">VALIDADE
+								(MM/AA)</label>
+							<input type="text" id="cartaoValidade" maxlength="5" placeholder="MM/AA" required
+								style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+						</div>
+						<div>
+							<label
+								style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">CVV</label>
+							<input type="text" id="cartaoCvv" maxlength="4" placeholder="123" required
+								style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+						</div>
+					</div>
+
+					<div style="margin-bottom: 12px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">CPF
+							DO TITULAR</label>
+						<input type="text" id="cartaoCpf" maxlength="14" placeholder="000.000.000-00" required
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+					</div>
+
+					<div style="margin-bottom: 16px;">
+						<label
+							style="font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 4px;">PARCELAS</label>
+						<select id="cartaoParcelas"
+							style="width: 100%; padding: 12px; background: #080808; border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; font-family: inherit; outline: none;">
+							<option value="1">1x à vista</option>
+							<option value="2">2x</option>
+							<option value="3">3x</option>
+							<option value="6">6x</option>
+							<option value="12">12x</option>
+						</select>
+					</div>
+
+					<button type="submit" id="btnPagarCartao" class="finalizar-btn" style="padding: 14px;">
+						CONFIRMAR PAGAMENTO COM CARTÃO
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		let carrinho = [];
+
+		// VARIÁVEL DE CONTROLE DE ENDEREÇO (INICIALIZADA A PARTIR DO MODEL DO USUÁRIO)
+		let usuarioTemEndereco = /*[[${usuarioTemEndereco != null and usuarioTemEndereco}]]*/ false;		/* =========================================================
+		   CONTROLE DE PERFIL E BUSCA AUTOMÁTICA DE CEP VIA API
+		   ========================================================= */
+		function abrirPerfil() {
+			document.getElementById("perfilOverlay").classList.add("show");
+		}
+
+		function fecharPerfil() {
+			document.getElementById("perfilOverlay").classList.remove("show");
+		}
+
+		// Função intermediária que checa se tem 8 dígitos enquanto digita
+		function validarEBuscarCep(valor) {
+			const cepLimpo = valor.replace(/\D/g, '');
+			if (cepLimpo.length === 8) {
+				consultarCep(cepLimpo);
+			}
+		}
+
+		function consultarCep(cepLimpo) {
+			fetch(`/api/cep/${cepLimpo}`)
+				.then(response => {
+					if (!response.ok) throw new Error("Erro na requisição");
+					return response.json();
+				})
+				.then(data => {
+					if (data && !data.erro) {
+						document.getElementById("logradouroInput").value = data.logradouro || '';
+						document.getElementById("bairroInput").value = data.bairro || '';
+						document.getElementById("localidadeInput").value = data.localidade || '';
+						document.getElementById("ufInput").value = data.uf || '';
+						document.getElementById("numeroInput").focus();
+					} else {
+						alert("CEP não encontrado.");
+					}
+				})
+				.catch(error => {
+					console.error("Erro ao consultar CEP na API local:", error);
+					alert("Erro ao realizar consulta de CEP.");
+				});
+		}
+
+		async function salvarPerfil(event) {
+			event.preventDefault();
+
+			const nome = document.getElementById("perfilNome").value;
+			const cep = document.getElementById("cepInput").value.trim();
+			const logradouro = document.getElementById("logradouroInput").value.trim();
+			const numero = document.getElementById("numeroInput").value.trim();
+			const bairro = document.getElementById("bairroInput").value.trim();
+			const localidade = document.getElementById("localidadeInput").value.trim();
+			const uf = document.getElementById("ufInput").value.trim();
+			const complemento = document.getElementById("complementoInput").value.trim();
+
+			if (!cep || !logradouro || !numero || !bairro || !localidade || !uf) {
+				alert("❌ Por favor, preencha todos os campos obrigatórios do endereço (CEP, Logradouro, Número, Bairro, Cidade e UF).");
+				return;
+			}
+
+			const btn = document.getElementById("btnSalvarPerfil");
+			btn.disabled = true;
+			btn.innerText = "SALVANDO...";
+
+			try {
+				const res = await fetch('/api/v1/usuarios/me/perfil', {
+					method: 'PUT',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						nome,
+						cep,
+						logradouro,
+						numero,
+						bairro,
+						localidade,
+						uf,
+						complemento
+					})
+				});
+
+				const data = await res.json().catch(() => ({}));
+
+				if (!res.ok) {
+					throw new Error(data.erro || "Falha ao salvar dados de perfil.");
+				}
+
+				usuarioTemEndereco = true;
+				alert("✓ Dados de perfil e endereço salvos com sucesso no sistema!");
+				fecharPerfil();
+			} catch (err) {
+				console.error("Erro ao salvar perfil:", err);
+				alert("❌ " + err.message);
+			} finally {
+				btn.disabled = false;
+				btn.innerText = "SALVAR ALTERAÇÕES";
+			}
+		}
+
+		/* =========================================================
+		   CONTROLE DO MODAL DE ALTERAÇÃO SEGURA DE SENHA
+		   ========================================================= */
+		function abrirModalSenha() {
+			fecharPerfil();
+			document.getElementById("senhaOverlay").classList.add("show");
+			document.getElementById("senhaAtualInput").focus();
+		}
+
+		function fecharModalSenha() {
+			document.getElementById("senhaOverlay").classList.remove("show");
+		}
+
+		async function confirmarAlteracaoSenha(event) {
+			event.preventDefault();
+			const senhaAtual = document.getElementById("senhaAtualInput").value;
+			const novaSenha = document.getElementById("novaSenhaInput").value;
+			const confirmarSenha = document.getElementById("confirmarNovaSenhaInput").value;
+			const btn = document.getElementById("btnSalvarSenha");
+
+			if (novaSenha !== confirmarSenha) {
+				alert("❌ A nova senha e a confirmação de senha não coincidem!");
+				return;
+			}
+
+			if (novaSenha.length < 6) {
+				alert("❌ A nova senha deve possuir no mínimo 6 caracteres!");
+				return;
+			}
+
+			btn.disabled = true;
+			btn.innerText = "ALTERANDO SENHA...";
+
+			try {
+				const res = await fetch('/api/v1/usuarios/alterar-senha', {
+					method: 'PATCH',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						senhaAtual: senhaAtual,
+						novaSenha: novaSenha,
+						confirmacaoSenha: confirmarSenha
+					})
+				});
+
+				const data = await res.json().catch(() => ({}));
+
+				if (!res.ok) {
+					throw new Error(data.erro || "Falha ao alterar senha.");
+				}
+
+				alert("🔒 " + (data.mensagem || "Senha alterada com sucesso!"));
+				document.getElementById("formAlterarSenha").reset();
+				fecharModalSenha();
+			} catch (err) {
+				console.error("Erro ao alterar senha:", err);
+				alert("❌ " + err.message);
+			} finally {
+				btn.disabled = false;
+				btn.innerText = "CONFIRMAR ALTERAÇÃO DE SENHA";
+			}
+		}
+
+		/* =========================================================
+		   INSCRIÇÃO NA NEWSLETTER
+		   ========================================================= */
+		function enviarInscricaoNewsletter(event) {
+			event.preventDefault();
+
+			const email = document.getElementById("emailNewsletter").value;
+			const btn = document.getElementById("btnNewsletter");
+
+			btn.disabled = true;
+			btn.innerText = "ENVIANDO...";
+
+			const tokenInput = document.querySelector("input[name='_csrf']");
+			const token = tokenInput ? tokenInput.value : "";
+
+			fetch("/api/newsletter/inscrever?email=" + encodeURIComponent(email), {
+				method: "POST",
+				headers: {
+					"X-CSRF-TOKEN": token
+				}
+			})
+				.then(response => {
+					if (response.ok) {
+						alert("🔥 Inscrição realizada! Verifique sua caixa de entrada para resgatar o cupom NXTDRIVEZEIRO.");
+						document.getElementById("emailNewsletter").value = "";
+					} else {
+						alert("Ocorreu um erro ao enviar o e-mail. Tente novamente.");
+					}
+				})
+				.catch(error => {
+					console.error("Erro:", error);
+					alert("Erro de conexão ao enviar inscrição.");
+				})
+				.finally(() => {
+					btn.disabled = false;
+					btn.innerText = "INSCREVER";
+				});
+		}
+
+
+
+		/* =========================================================
+		   FUNÇÕES DO CARRINHO E INTERFACE
+		   ========================================================= */
+		function adicionarCarrinho(botao) {
+			const id = botao.getAttribute("data-id");
+			const nome = botao.getAttribute("data-nome");
+			const valor = parseFloat(botao.getAttribute("data-valor"));
+
+			carrinho.push({id, nome, valor});
+
+			atualizarCarrinho();
+			mostrarNotificacao(nome);
+		}
+
+		function mostrarNotificacao(nomeProduto) {
+			const container = document.getElementById("toastContainer");
+			const toast = document.createElement("div");
+			toast.className = "toast";
+			toast.innerHTML = `
+				<span class="toast-icon">✓</span>
+				<span><strong>${nomeProduto}</strong> adicionado ao carrinho!</span>
+			`;
+			container.appendChild(toast);
+
+			setTimeout(() => {toast.remove();}, 3000);
+		}
+
+		function atualizarCarrinho() {
+			const contador = document.getElementById("contadorCarrinho");
+			contador.innerText = carrinho.length;
+
+			const lista = document.getElementById("listaCarrinho");
+			const total = document.getElementById("valorTotal");
+
+			if (carrinho.length === 0) {
+				lista.innerHTML = '<p class="carrinho-vazio">Seu carrinho está vazio.</p>';
+				total.innerText = "R$ 0,00";
+				return;
+			}
+
+			lista.innerHTML = "";
+			let valorTotal = 0;
+
+			carrinho.forEach((produto, index) => {
+				valorTotal += produto.valor;
+				const item = document.createElement("div");
+				item.className = "carrinho-item";
+				item.innerHTML = `
+					<div>
+						<strong>${produto.nome}</strong>
+						<span>R$ ${produto.valor.toFixed(2).replace(".", ",")}</span>
+					</div>
+					<button onclick="removerCarrinho(${index})">×</button>
+				`;
+				lista.appendChild(item);
+			});
+
+			total.innerText = "R$ " + valorTotal.toFixed(2).replace(".", ",");
+		}
+
+		function removerCarrinho(index) {
+			carrinho.splice(index, 1);
+			atualizarCarrinho();
+		}
+
+		function abrirCarrinho() {
+			document.getElementById("cartOverlay").classList.add("show");
+		}
+
+		function fecharCarrinho() {
+			document.getElementById("cartOverlay").classList.remove("show");
+		}
+
+		function abrirBusca() {
+			document.getElementById("searchOverlay").classList.add("show");
+			document.getElementById("campoBusca").focus();
+		}
+
+		function fecharBusca() {
+			document.getElementById("searchOverlay").classList.remove("show");
+		}
+
+		function buscarProduto() {
+			const busca = document.getElementById("campoBusca").value.toLowerCase();
+			const produtos = document.querySelectorAll(".produto-card");
+
+			produtos.forEach(produto => {
+				const nome = produto.querySelector("h3").innerText.toLowerCase();
+				produto.style.display = nome.includes(busca) ? "" : "none";
+			});
+		}
+
+		function filtrarProdutos(categoria, botao) {
+			document.querySelectorAll(".filtro").forEach(btn => btn.classList.remove("ativo"));
+			botao.classList.add("ativo");
+
+			document.querySelectorAll(".produto-card").forEach(produto => {
+				const categoriaProduto = produto.getAttribute("data-categoria");
+				produto.style.display = (categoria === "todos" || categoriaProduto === categoria) ? "" : "none";
+			});
+		}
+
+		/* =========================================================
+		   INTEGRAÇÃO MERCADO PAGO: CHECKOUT PIX & CARTÃO DE CRÉDITO
+		   ========================================================= */
+		let pollingInterval = null;
+		let pedidoIdAtual = null;
+		let abaAtual = 'pix';
+		let mpPublicKey = null;
+
+		async function obterMercadoPagoPublicKey() {
+			if (mpPublicKey) return mpPublicKey;
+			try {
+				const res = await fetch('/api/v1/pagamentos/public-key');
+				if (res.ok) {
+					const data = await res.json();
+					mpPublicKey = data.publicKey;
+					return mpPublicKey;
+				}
+			} catch (e) {
+				console.error("Erro ao obter public key do backend:", e);
+			}
+			return "TEST-SUA-PUBLIC-KEY-AQUI";
+		}
+
+		function abrirCheckout() {
+			if (carrinho.length === 0) {
+				alert("Seu carrinho está vazio!");
+				return;
+			}
+
+			if (!usuarioTemEndereco) {
+				alert("⚠️ Você precisa cadastrar o seu endereço de entrega no seu Perfil antes de finalizar a compra!");
+				fecharCarrinho();
+				abrirPerfil();
+				return;
+			}
+
+			const total = carrinho.reduce((acc, item) => acc + item.valor, 0);
+			document.getElementById("checkoutTotalDisplay").innerText = "R$ " + total.toFixed(2).replace(".", ",");
+
+			fecharCarrinho();
+			document.getElementById("checkoutOverlay").classList.add("show");
+
+			// Inicia na aba Pix por padrão
+			selecionarAbaCheckout('pix');
+		}
+
+		function fecharCheckout() {
+			document.getElementById("checkoutOverlay").classList.remove("show");
+			pararPollingStatus();
+		}
+
+		function selecionarAbaCheckout(aba) {
+			abaAtual = aba;
+			const tabPixBtn = document.getElementById("tabPixBtn");
+			const tabCartaoBtn = document.getElementById("tabCartaoBtn");
+			const abaPixConteudo = document.getElementById("abaPixConteudo");
+			const abaCartaoConteudo = document.getElementById("abaCartaoConteudo");
+
+			if (aba === 'pix') {
+				tabPixBtn.style.background = "#3da9ff";
+				tabPixBtn.style.color = "#000";
+				tabPixBtn.style.border = "none";
+
+				tabCartaoBtn.style.background = "rgba(255,255,255,0.05)";
+				tabCartaoBtn.style.color = "#fff";
+				tabCartaoBtn.style.border = "1px solid rgba(255,255,255,0.1)";
+
+				abaPixConteudo.style.display = "block";
+				abaCartaoConteudo.style.display = "none";
+
+				const total = carrinho.reduce((acc, item) => acc + item.valor, 0);
+				iniciarCheckoutPix(total);
+			} else {
+				tabCartaoBtn.style.background = "#3da9ff";
+				tabCartaoBtn.style.color = "#000";
+				tabCartaoBtn.style.border = "none";
+
+				tabPixBtn.style.background = "rgba(255,255,255,0.05)";
+				tabPixBtn.style.color = "#fff";
+				tabPixBtn.style.border = "1px solid rgba(255,255,255,0.1)";
+
+				abaCartaoConteudo.style.display = "block";
+				abaPixConteudo.style.display = "none";
+				pararPollingStatus();
+			}
+		}
+
+		async function iniciarCheckoutPix(total) {
+			const pixCarregando = document.getElementById("pixCarregando");
+			const pixDetalhes = document.getElementById("pixDetalhes");
+			const pixStatusBadge = document.getElementById("pixStatusBadge");
+
+			pixCarregando.style.display = "block";
+			pixDetalhes.style.display = "none";
+			pixStatusBadge.innerHTML = 'Aguardando pagamento... ⏳';
+			pixStatusBadge.style.color = '#3da9ff';
+			pixStatusBadge.style.borderColor = '#3da9ff';
+
+			const emailEl = document.getElementById("usuarioEmailLogado");
+			const email = (emailEl && emailEl.value) ? emailEl.value : "cliente@nxtdrive.com.br";
+
+			try {
+				const nomeCliente = document.getElementById("perfilNome")?.value || document.getElementById("usuarioNomeLogado")?.value || "Cliente NXT Drive";
+				const rua = document.getElementById("logradouroInput")?.value || "";
+				const numero = document.getElementById("numeroInput")?.value || "";
+				const complemento = document.getElementById("complementoInput")?.value || "";
+				const bairro = document.getElementById("bairroInput")?.value || "";
+				const cidade = document.getElementById("localidadeInput")?.value || "";
+				const uf = document.getElementById("ufInput")?.value || "";
+				const cep = document.getElementById("cepInput")?.value || "";
+				const itensDesc = carrinho.map(i => i.nome).join(" + ");
+
+				const res = await fetch('/api/v1/pagamentos/pix', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						valor: total,
+						email: email,
+						descricao: "Compra Loja NXT Drive (" + carrinho.length + " itens)",
+						nomeCliente: nomeCliente,
+						rua: rua,
+						numero: numero,
+						complemento: complemento,
+						bairro: bairro,
+						cidade: cidade,
+						uf: uf,
+						cep: cep,
+						itensDescricao: itensDesc
+					})
+				});
+
+				if (!res.ok) throw new Error("Falha ao comunicar com o servidor");
+
+				const data = await res.json();
+				pedidoIdAtual = data.pedidoId;
+
+				// Exibe QR Code em Base64 recebido da API do Mercado Pago
+				if (data.qrCodeBase64) {
+					document.getElementById("qrCodeImg").src = "data:image/png;base64," + data.qrCodeBase64;
+				} else if (data.qrCode) {
+					document.getElementById("qrCodeImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qrCode)}`;
+				}
+
+				document.getElementById("pixCopiaColaInput").value = data.qrCode || "";
+
+				pixCarregando.style.display = "none";
+				pixDetalhes.style.display = "block";
+
+				// Inicia verificação periódica de status (polling) utilizando o UUID do pedido
+				iniciarPollingStatus(pedidoIdAtual);
+
+			} catch (err) {
+				console.error("Erro ao gerar Pix:", err);
+				pixCarregando.innerHTML = `<span style="color:#ff5252">❌ Erro ao gerar Pix no Mercado Pago: ${err.message}</span>`;
+			}
+		}
+
+		function copiarPixCode() {
+			const codigoPix = document.getElementById("pixCopiaColaInput").value;
+			if (!codigoPix) return;
+
+			navigator.clipboard.writeText(codigoPix).then(() => {
+				const btnCopiar = document.getElementById("btnCopiarPix");
+				btnCopiar.innerText = "✓ CÓDIGO COPIADO COM SUCESSO!";
+				setTimeout(() => {
+					btnCopiar.innerText = "📋 COPIAR CÓDIGO PIX";
+				}, 4000);
+			}).catch(err => {
+				alert("Copie o código Pix manualmente:\n\n" + codigoPix);
+			});
+		}
+
+		function iniciarPollingStatus(pedidoId) {
+			pararPollingStatus();
+			if (!pedidoId) return;
+
+			pollingInterval = setInterval(async () => {
+				try {
+					const res = await fetch(`/api/v1/pagamentos/status/${pedidoId}`);
+					if (res.ok) {
+						const data = await res.json();
+						const status = (data.status || '').toLowerCase();
+
+						if (status === 'approved' || status === 'pago') {
+							pararPollingStatus();
+							const pixStatusBadge = document.getElementById("pixStatusBadge");
+							if (pixStatusBadge) {
+								pixStatusBadge.innerHTML = '✅ PAGAMENTO CONFIRMADO COM SUCESSO!';
+								pixStatusBadge.style.color = '#00e676';
+								pixStatusBadge.style.borderColor = '#00e676';
+							}
+							setTimeout(() => {
+								concluirPedido("🎉 Pagamento Pix aprovado no Mercado Pago! Pedido confirmado.");
+							}, 1500);
+						} else if (status === 'rejected' || status === 'cancelled') {
+							pararPollingStatus();
+							const pixStatusBadge = document.getElementById("pixStatusBadge");
+							if (pixStatusBadge) {
+								pixStatusBadge.innerHTML = '❌ Pagamento rejeitado ou cancelado.';
+								pixStatusBadge.style.color = '#ff5252';
+								pixStatusBadge.style.borderColor = '#ff5252';
+							}
+						}
+					}
+				} catch (e) {
+					console.warn("Polling de status falhou:", e);
+				}
+			}, 3000);
+		}
+
+		function pararPollingStatus() {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+				pollingInterval = null;
+			}
+		}
+
+		async function processarPagamentoCartaoFrontend(event) {
+			event.preventDefault();
+
+			const btn = document.getElementById("btnPagarCartao");
+			btn.disabled = true;
+			btn.innerText = "PROCESSANDO PAGAMENTO...";
+
+			const numero = document.getElementById("cartaoNumero").value.replace(/\s+/g, '');
+			const nome = document.getElementById("cartaoNome").value.trim();
+			const validade = document.getElementById("cartaoValidade").value.trim();
+			const cvv = document.getElementById("cartaoCvv").value.trim();
+			const cpf = document.getElementById("cartaoCpf").value.replace(/\D/g, '');
+			const parcelas = parseInt(document.getElementById("cartaoParcelas").value, 10) || 1;
+
+			const partesValidade = validade.split('/');
+			const mes = partesValidade[0];
+			let ano = partesValidade[1] || '';
+			if (ano.length === 2) ano = "20" + ano;
+
+			const total = carrinho.reduce((acc, item) => acc + item.valor, 0);
+			const emailEl = document.getElementById("usuarioEmailLogado");
+			const email = (emailEl && emailEl.value) ? emailEl.value : "cliente@nxtdrive.com.br";
+
+			try {
+				const publicKey = await obterMercadoPagoPublicKey();
+
+				// 1. Tokenização direta na API pública do Mercado Pago (dados nunca passam abertos pelo backend)
+				const tokenRes = await fetch(`https://api.mercadopago.com/v1/card_tokens?public_key=${encodeURIComponent(publicKey)}`, {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						card_number: numero,
+						cardholder: {
+							name: nome,
+							identification: {
+								type: 'CPF',
+								number: cpf
+							}
+						},
+						security_code: cvv,
+						expiration_month: parseInt(mes, 10),
+						expiration_year: parseInt(ano, 10)
+					})
+				});
+
+				if (!tokenRes.ok) {
+					const errorData = await tokenRes.json();
+					throw new Error(errorData.message || "Erro na validação do cartão pelo Mercado Pago");
+				}
+
+				const tokenData = await tokenRes.json();
+				const cardToken = tokenData.id;
+
+				const rua = document.getElementById("logradouroInput")?.value || "";
+				const numero = document.getElementById("numeroInput")?.value || "";
+				const complemento = document.getElementById("complementoInput")?.value || "";
+				const bairro = document.getElementById("bairroInput")?.value || "";
+				const cidade = document.getElementById("localidadeInput")?.value || "";
+				const uf = document.getElementById("ufInput")?.value || "";
+				const cep = document.getElementById("cepInput")?.value || "";
+				const itensDesc = carrinho.map(i => i.nome).join(" + ");
+
+				// 2. Envio seguro apenas do token gerado para o backend Spring Boot
+				const payRes = await fetch('/api/v1/pagamentos/cartao', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						token: cardToken,
+						parcelas: parcelas,
+						email: email,
+						valor: total,
+						descricao: "Compra Cartão NXT Drive (" + carrinho.length + " itens)",
+						nomeCliente: nome,
+						cpfCliente: cpf,
+						rua: rua,
+						numero: numero,
+						complemento: complemento,
+						bairro: bairro,
+						cidade: cidade,
+						uf: uf,
+						cep: cep,
+						itensDescricao: itensDesc
+					})
+				});
+
+				if (!payRes.ok) throw new Error("Falha ao processar pagamento com cartão no backend");
+
+				const payData = await payRes.json();
+
+				const statusLower = (payData.status || '').toLowerCase();
+				if (statusLower === 'approved' || statusLower === 'pago') {
+					concluirPedido("💳 Pagamento com Cartão Aprovado com Sucesso!");
+				} else {
+					alert(`Status do Pagamento: ${payData.status} - ${payData.mensagem || 'Aguarde processamento.'}`);
+					concluirPedido("Pedido registrado. Status: " + payData.status);
+				}
+
+			} catch (err) {
+				console.error("Erro checkout cartão:", err);
+				alert("❌ Falha no pagamento: " + err.message);
+			} finally {
+				btn.disabled = false;
+				btn.innerText = "CONFIRMAR PAGAMENTO COM CARTÃO";
+			}
+		}
+
+		function concluirPedido(msg = "Pedido concluído com sucesso!") {
+			fecharCheckout();
+			carrinho = [];
+			atualizarCarrinho();
+			alert(msg);
+		}
+
+		/* =========================================================
+		   CONTROLE DE ACESSO DO PAINEL ADMIN NO DOM (FRONTEND)
+		   ========================================================= */
+		document.addEventListener("DOMContentLoaded", function () {
+			const isAdminInput = document.getElementById("usuarioIsAdmin");
+			const isAdmin = isAdminInput && isAdminInput.value === "true";
+			const btnAdmin = document.getElementById("btnPainelAdmin");
+			if (!isAdmin && btnAdmin) {
+				// Remove do DOM se o usuário for cliente comum ou deslogado
+				btnAdmin.remove();
+			}
+		});
+
+		/* =========================================================
+		   BLOQUEIO DO BOTÃO "VOLTAR" DO NAVEGADOR
+		   ========================================================= */
+		window.history.pushState(null, "", window.location.href);
+		window.onpopstate = function () {
+			window.history.pushState(null, "", window.location.href);
+		};
+
+		window.addEventListener("pageshow", function (event) {
+			if (event.persisted || (typeof window.performance != "undefined" && window.performance.navigation.type === 2)) {
+				window.location.reload();
+			}
+		});
+	</script>
+
+</body>
+
+</html>
